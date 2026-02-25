@@ -50,6 +50,10 @@
         .admin-panel { background: #333; color: white; padding: 20px; border-radius: 12px; margin-top: 30px; }
         .btn { background: var(--primary); border: none; padding: 12px; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 10px; font-size: 16px; }
         .btn-secondary { background: var(--secondary); color: white; }
+        .btn-clear { background: #ff4d4d; color: white; margin-top: 5px; font-size: 12px; padding: 8px; }
+        
+        /* Časový filter */
+        .filter-row { display: flex; gap: 10px; align-items: center; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -61,8 +65,14 @@
     </div>
 
     <div class="search-box">
-        <input type="text" id="searchInput" onkeyup="searchStation()" placeholder="Kam cestujete? (napr. Lipovník)">
+        <input type="text" id="searchInput" onkeyup="filterBuses()" placeholder="Kam cestujete? (napr. Lipovník)">
         <div id="autocomplete-list" class="autocomplete-items"></div>
+        
+        <div class="filter-row">
+            <input type="time" id="timeInput" onchange="filterBuses()">
+            <button class="btn" style="margin-top:0; width: auto; padding: 8px 12px; font-size: 12px;" onclick="clearTime()">ZRUŠIŤ ČAS</button>
+        </div>
+
         <button class="btn" onclick="alert('Vyhľadávam voľné bicykle...')">VYHĽADAŤ SPOJENIE</button>
         <button class="btn btn-secondary" onclick="toggleMap()">ZOBRAZIŤ MAPU TRÁS</button>
     </div>
@@ -72,25 +82,28 @@
         <div id="map"></div>
     </div>
 
-    <div id="links-container">
-        </div>
+    <div id="links-container"></div>
 
     <div class="admin-panel">
         <strong>🔧 DISPEČING A NASTAVENIA</strong><br>
         <small>Text oznamu pre cestujúcich:</small>
         <textarea id="adminNote" placeholder="Napr. Meškanie 25 min kvôli počasiu..."></textarea>
         
+        <button class="btn" onclick="updateApp()">AKTUALIZOVAŤ OZNAM</button>
+        <button class="btn btn-clear" onclick="clearOznam()">❌ VYMAZAŤ OZNAM</button>
+        
+        <hr style="margin: 20px 0; border: 0; border-top: 1px solid #555;">
+        
         <small>Priradiť ŠPZ k linke:</small>
         <select id="lineSelect"></select>
         <input type="text" id="newSpz" placeholder="Napr. RV-BIKE-01">
         
-        <button class="btn" onclick="updateApp()">AKTUALIZOVAŤ GRAFIKON</button>
+        <button class="btn" onclick="updateSpzOnly()">PRIRADIŤ ŠPZ</button>
         <button class="btn" style="background:#28a745; color:white; margin-top:20px;" onclick="generateShareLink()">📤 ZDIEĽAŤ STAV KAMARÁTOVI</button>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // --- DATA (Vrátane tvojich nových liniek) ---
         const zastavkyFull = [
             "Jovice, aut. stanica", "Jovice, Jednota", "Jovice, rázc. Krh. Dlhá Lúka", 
             "Pole, č. 1", "Pole, č. 2", "Krásnohorská Dlhá Lúka, rázc. Jovice", 
@@ -113,7 +126,6 @@
             { id: "9", cislo: "808423", smer: "Krásnohorská Dlhá Lúka ➔ Jovice", start: "16:10", trasa: zastavkyFull.slice(0, 7).reverse(), min: casyOdStanice.slice(0, 7) }
         ];
 
-        // --- FUNKCIE ---
         function pridajCas(start, plusMinuty) {
             let [h, m] = start.split(':').map(Number);
             let d = new Date(); d.setHours(h); d.setMinutes(m + plusMinuty);
@@ -124,89 +136,101 @@
             const container = document.getElementById('links-container');
             const select = document.getElementById('lineSelect');
             container.innerHTML = "";
-            
             spoje.forEach(spoj => {
                 let card = document.createElement('div');
                 card.className = 'bus-card';
+                card.dataset.smer = spoj.smer;
+                card.dataset.start = spoj.start;
+                card.dataset.stops = JSON.stringify(spoj.trasa);
                 card.onclick = function() { this.classList.toggle('active'); };
-                
-                let html = `
-                    <div class="bus-summary">
-                        <div style="display:flex; align-items:center; gap:12px;">
-                            <div class="line-badge">${spoj.cislo}</div>
-                            <div><strong>${spoj.smer}</strong><br><small>Odchod: ${spoj.start}</small></div>
-                        </div>
-                        <span>▼</span>
-                    </div>
-                    <div class="bus-details">
-                        <div class="stations-list">`;
-                
+                let html = `<div class="bus-summary"><div style="display:flex; align-items:center; gap:12px;"><div class="line-badge">${spoj.cislo}</div><div><strong>${spoj.smer}</strong><br><small>Odchod: ${spoj.start}</small></div></div><span>▼</span></div><div class="bus-details"><div class="stations-list">`;
                 spoj.trasa.forEach((z, i) => {
-                    html += `
-                        <div class="station-item">
-                            <span class="time">${pridajCas(spoj.start, spoj.min[i])}</span>
-                            <span>${z}</span>
-                        </div>`;
+                    html += `<div class="station-item"><span class="time">${pridajCas(spoj.start, spoj.min[i])}</span><span>${z}</span></div>`;
                 });
-
-                html += `
-                        </div>
-                        <div class="bus-footer">
-                            <span>Dopravca: <strong>SAD Jovice</strong></span>
-                            <span class="spz-tag" id="tag-${spoj.id}">RV-JOVICE</span>
-                        </div>
-                    </div>`;
-                
+                html += `</div><div class="bus-footer"><span>Dopravca: <strong>SAD Jovice</strong></span><span class="spz-tag" id="tag-${spoj.id}">RV-JOVICE</span></div></div>`;
                 card.innerHTML = html;
                 container.appendChild(card);
-
                 let opt = document.createElement('option');
-                opt.value = spoj.id;
-                opt.innerText = `${spoj.cislo} (${spoj.start})`;
+                opt.value = spoj.id; opt.innerText = `${spoj.cislo} (${spoj.start})`;
                 select.appendChild(opt);
             });
         }
 
-        // --- MAPA ---
-        let leafletMap;
-        function toggleMap() {
-            const mapDiv = document.getElementById('map-container');
-            if (mapDiv.style.display === 'block') {
-                mapDiv.style.display = 'none';
-            } else {
-                mapDiv.style.display = 'block';
-                if (!leafletMap) {
-                    leafletMap = L.map('map').setView([48.628, 20.585], 13);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(leafletMap);
-                    
-                    const p_jovice = [48.6369, 20.5564];
-                    const p_luka = [48.6186, 20.5786];
-                    const p_lipovnik = [48.6342, 20.6183];
+        // --- FILTROVANIE (Zastávka + Čas) ---
+        function filterBuses() {
+            let input = document.getElementById("searchInput").value.toLowerCase();
+            let timeVal = document.getElementById("timeInput").value;
+            let cards = document.querySelectorAll('.bus-card');
 
-                    L.marker(p_jovice).addTo(leafletMap).bindPopup("Jovice");
-                    L.marker(p_luka).addTo(leafletMap).bindPopup("Krh. Dlhá Lúka");
-                    L.marker(p_lipovnik).addTo(leafletMap).bindPopup("Lipovník");
+            cards.forEach(card => {
+                let trasa = JSON.parse(card.dataset.stops).map(s => s.toLowerCase());
+                let odchod = card.dataset.start;
+                
+                let matchesStation = input === "" || trasa.some(stop => stop.includes(input));
+                let matchesTime = timeVal === "" || odchod >= timeVal;
 
-                    L.polyline([p_jovice, p_luka, p_lipovnik], {color: 'blue', weight: 4}).addTo(leafletMap);
+                if (matchesStation && matchesTime) {
+                    card.style.display = "block";
+                } else {
+                    card.style.display = "none";
                 }
-            }
+            });
+        }
+
+        function clearTime() {
+            document.getElementById("timeInput").value = "";
+            filterBuses();
         }
 
         // --- DISPEČING ---
         function updateApp() {
             const note = document.getElementById('adminNote').value;
-            const spz = document.getElementById('newSpz').value;
-            const id = document.getElementById('lineSelect').value;
-            
             if (note) {
                 const oznam = document.getElementById('dispecing-oznam');
                 oznam.innerText = "⚠️ " + note;
                 oznam.style.display = "block";
+                alert("Oznam bol publikovaný!");
             }
+        }
+
+        function clearOznam() {
+            document.getElementById('dispecing-oznam').style.display = "none";
+            document.getElementById('adminNote').value = "";
+            alert("Oznam bol vymazaný.");
+        }
+
+        function updateSpzOnly() {
+            const spz = document.getElementById('newSpz').value;
+            const id = document.getElementById('lineSelect').value;
             if (spz) {
                 document.getElementById('tag-' + id).innerText = spz;
+                alert("ŠPZ priradená!");
             }
-            alert("Zmeny boli aplikované!");
+        }
+
+        // --- MAPA (Farebné úseky) ---
+        let leafletMap;
+        function toggleMap() {
+            const mapDiv = document.getElementById('map-container');
+            if (mapDiv.style.display === 'block') { mapDiv.style.display = 'none'; } 
+            else {
+                mapDiv.style.display = 'block';
+                if (!leafletMap) {
+                    leafletMap = L.map('map').setView([48.628, 20.585], 13);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(leafletMap);
+                    const p_jovice = [48.6369, 20.5564];
+                    const p_luka = [48.6186, 20.5786];
+                    const p_lipovnik = [48.6342, 20.6183];
+                    L.marker(p_jovice).addTo(leafletMap).bindPopup("Jovice");
+                    L.marker(p_luka).addTo(leafletMap).bindPopup("Krh. Dlhá Lúka");
+                    L.marker(p_lipovnik).addTo(leafletMap).bindPopup("Lipovník");
+                    
+                    // Jovice -> Dlhá Lúka (ČERVENÁ)
+                    L.polyline([p_jovice, p_luka], {color: 'red', weight: 5}).addTo(leafletMap);
+                    // Dlhá Lúka -> Lipovník (MODRÁ)
+                    L.polyline([p_luka, p_lipovnik], {color: 'blue', weight: 5}).addTo(leafletMap);
+                }
+            }
         }
 
         function generateShareLink() {
@@ -215,12 +239,12 @@
             const id = document.getElementById('lineSelect').value;
             const url = window.location.origin + window.location.pathname + `?note=${note}&spz=${spz}&id=${id}`;
             navigator.clipboard.writeText(url);
-            alert("Link na aktuálny stav dispečingu bol skopírovaný! Pošli ho kamarátovi.");
+            alert("Odkaz pre kamaráta je v schránke!");
         }
 
         function loadFromParams() {
             const params = new URLSearchParams(window.location.search);
-            if (params.has('note')) {
+            if (params.has('note') && params.get('note') !== "") {
                 const oznam = document.getElementById('dispecing-oznam');
                 oznam.innerText = "⚠️ " + decodeURIComponent(params.get('note'));
                 oznam.style.display = "block";
@@ -237,7 +261,7 @@
             let input = document.getElementById("searchInput").value.toLowerCase();
             let list = document.getElementById("autocomplete-list");
             list.innerHTML = "";
-            if (!input) return;
+            if (!input) { filterBuses(); return; }
             [...new Set(zastavkyFull)].forEach(z => {
                 if (z.toLowerCase().includes(input)) {
                     let div = document.createElement("div");
@@ -245,10 +269,12 @@
                     div.onclick = function() {
                         document.getElementById("searchInput").value = z;
                         list.innerHTML = "";
+                        filterBuses();
                     };
                     list.appendChild(div);
                 }
             });
+            filterBuses();
         }
 
         vykresliLinky();
