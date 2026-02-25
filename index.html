@@ -3,151 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAD Jovice</title>
+    <title>SAD Jovice - Gemer</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root { --primary: #FFD700; --secondary: #004a99; --bg: #e9ecef; --card: #ffffff; --text: #212529; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); margin: 0; padding: 0; padding-bottom: 70px; color: var(--text); overflow-x: hidden; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--bg); margin: 0; padding: 15px; color: var(--text); }
         
-        /* Dispečerský oznam */
-        #alert-bar { background: var(--primary); color: #000; padding: 10px; text-align: center; font-weight: bold; font-size: 14px; display: none; border-bottom: 2px solid #000; }
+        /* Pôvodná Hlavička */
+        .header { background: var(--secondary); color: white; padding: 25px 15px; border-radius: 0 0 20px 20px; text-align: center; margin: -15px -15px 20px -15px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .header h1 { margin: 0; font-size: 28px; }
+        .header p { margin: 5px 0 0; font-style: italic; font-size: 14px; }
 
-        .header { background: var(--secondary); color: white; padding: 20px 15px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-        
-        .page { display: none; padding: 15px; animation: fadeIn 0.3s ease; }
-        .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* Oznam z dispečingu */
+        #dispecing-oznam { background: var(--primary); color: black; padding: 10px; border-radius: 8px; margin-top: 15px; text-align: center; font-weight: bold; display: none; border: 2px solid #333; }
 
-        /* Vyhľadávanie a Karty */
-        .search-box { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        /* Vyhľadávanie - Pôvodný štýl */
+        .search-box { background: var(--card); padding: 15px; border-radius: 12px; margin-top: 20px; margin-bottom: 20px; position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         input, select, textarea { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        .autocomplete-items { position: absolute; border: 1px solid #d4d4d4; background: white; z-index: 99; width: calc(100% - 30px); border-radius: 0 0 8px 8px; max-height: 200px; overflow-y: auto; }
+        .autocomplete-items div { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+        .autocomplete-items div:hover { background-color: #e9e9e9; }
+
+        /* Karty spojov - Pôvodný štýl */
+        .bus-card { background: var(--card); border-radius: 12px; margin-bottom: 15px; overflow: hidden; box-shadow: 0 3px 6px rgba(0,0,0,0.1); border: 1px solid #ddd; cursor: pointer; }
+        .bus-summary { padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .line-badge { background: var(--secondary); color: white; min-width: 70px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-weight: bold; font-size: 13px; }
         
-        .bus-card { background: var(--card); border-radius: 12px; margin-bottom: 15px; border: 1px solid #ddd; overflow: hidden; }
-        .bus-summary { padding: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-        .line-badge { background: var(--secondary); color: white; padding: 5px 10px; border-radius: 6px; font-weight: bold; }
+        .bus-details { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; background: #fdfdfd; border-top: 1px dashed #ccc; }
+        .bus-card.active .bus-details { max-height: 1500px; }
         
-        .bus-details { display: none; padding: 15px; background: #fdfdfd; border-top: 1px dashed #ccc; }
-        .station-item { display: flex; gap: 15px; margin-bottom: 8px; font-size: 14px; }
-        .time { font-weight: bold; color: var(--secondary); }
+        /* Zastávky s čiaročkou - Pôvodný štýl */
+        .stations-list { padding: 15px; list-style: none; margin: 0; }
+        .station-item { display: flex; gap: 15px; margin-bottom: 8px; position: relative; font-size: 14px; }
+        .station-item::before { content: ''; width: 2px; background: #ddd; position: absolute; left: 44px; top: 15px; bottom: -15px; }
+        .station-item:last-child::before { display: none; }
+        .time { font-weight: bold; color: var(--secondary); min-width: 45px; z-index: 1; }
 
-        /* Mapa */
-        #map { height: 70vh; width: 100%; border-radius: 12px; border: 2px solid var(--secondary); }
+        .bus-footer { padding: 12px; background: #f1f1f1; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .spz-tag { background: white; padding: 4px 10px; border: 2px solid #333; border-radius: 5px; font-family: monospace; font-weight: bold; }
 
-        /* Navigácia */
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 10px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000; }
-        .nav-item { border: none; background: none; font-size: 12px; color: #666; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
-        .nav-item.active { color: var(--secondary); font-weight: bold; }
-        .nav-icon { font-size: 20px; margin-bottom: 3px; }
+        /* MAPA */
+        #map-container { background: var(--card); padding: 10px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #ddd; display: none; }
+        #map { height: 400px; width: 100%; border-radius: 8px; }
 
-        .btn { background: var(--primary); border: none; padding: 12px; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 10px; }
-        .btn-map { background: var(--secondary); color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px; margin-top: 5px; display: inline-block; text-decoration: none; }
+        /* Admin / Dispečing */
+        .admin-panel { background: #333; color: white; padding: 20px; border-radius: 12px; margin-top: 30px; }
+        .btn { background: var(--primary); border: none; padding: 12px; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 10px; font-size: 16px; }
+        .btn-secondary { background: var(--secondary); color: white; }
     </style>
 </head>
 <body>
 
-    <div id="alert-bar">⚠️ OZNAM: Premávka bez obmedzení.</div>
-
     <div class="header">
         <h1>SAD JOVICE</h1>
+        <p>"Váš dopravný sprievodca Gemerom"</p>
+        <div id="dispecing-oznam"></div>
     </div>
 
-    <div id="page-list" class="page active">
-        <div class="search-box">
-            <input type="text" id="searchInput" onkeyup="search()" placeholder="Kam cestujete?">
-        </div>
-        <div id="links-container"></div>
+    <div class="search-box">
+        <input type="text" id="searchInput" onkeyup="searchStation()" placeholder="Kam cestujete? (napr. Lipovník)">
+        <div id="autocomplete-list" class="autocomplete-items"></div>
+        <button class="btn" onclick="alert('Vyhľadávam voľné bicykle...')">VYHĽADAŤ SPOJENIE</button>
+        <button class="btn btn-secondary" onclick="toggleMap()">ZOBRAZIŤ MAPU TRÁS</button>
     </div>
 
-    <div id="page-map" class="page">
-        <h3 style="margin-top:0;">Mapa trás SAD Jovice</h3>
+    <div id="map-container">
+        <h3 style="margin-top:0;">Mapa SAD Jovice</h3>
         <div id="map"></div>
-        <p><small>Linky: Modrá (808425), Červená (808423), Zelená (808427)</small></p>
     </div>
 
-    <div id="page-admin" class="page">
-        <div class="search-box">
-            <h3>🔧 Dispečing</h3>
-            <label>Text oznamu (hore):</label>
-            <textarea id="adminNote" rows="2" placeholder="Napr. Meškanie 25 min kvôli počasiu..."></textarea>
-            
-            <label style="margin-top:10px; display:block;">Priradiť ŠPZ k linke:</label>
-            <select id="lineSelect"></select>
-            <input type="text" id="newSpz" placeholder="Napr. RV-BIKE-01">
-            
-            <button class="btn" onclick="applyChanges()">AKTUALIZOVAŤ APLIKÁCIU</button>
-            <hr>
-            <button class="btn" style="background:#28a745; color:white;" onclick="generateShareLink()">📤 ZDIEĽAŤ STAV KAMARÁTOVI</button>
-            <p><small>Tlačidlo vygeneruje odkaz, ktorý pošleš kamarátovi, aby videl tvoje zmeny.</small></p>
+    <div id="links-container">
         </div>
-    </div>
 
-    <div class="nav-bar">
-        <button class="nav-item active" onclick="showPage('page-list', this)">
-            <span class="nav-icon">🕒</span>Spoje
-        </button>
-        <button class="nav-item" onclick="showPage('page-map', this)">
-            <span class="nav-icon">🗺️</span>Mapa
-        </button>
-        <button class="nav-item" onclick="showPage('page-admin', this)">
-            <span class="nav-icon">⚙️</span>Dispečing
-        </button>
+    <div class="admin-panel">
+        <strong>🔧 DISPEČING A NASTAVENIA</strong><br>
+        <small>Text oznamu pre cestujúcich:</small>
+        <textarea id="adminNote" placeholder="Napr. Meškanie 25 min kvôli počasiu..."></textarea>
+        
+        <small>Priradiť ŠPZ k linke:</small>
+        <select id="lineSelect"></select>
+        <input type="text" id="newSpz" placeholder="Napr. RV-BIKE-01">
+        
+        <button class="btn" onclick="updateApp()">AKTUALIZOVAŤ GRAFIKON</button>
+        <button class="btn" style="background:#28a745; color:white; margin-top:20px;" onclick="generateShareLink()">📤 ZDIEĽAŤ STAV KAMARÁTOVI</button>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        const zastavkyFull = ["Jovice, aut. stanica", "Jovice, Jednota", "Jovice, rázc. Krh. Dlhá Lúka", "Pole, č. 1", "Pole, č. 2", "Krásnohorská Dlhá Lúka, rázc. Jovice", "Krásnohorská Dlhá Lúka, Jednota", "Krásnohorská Dlhá Lúka, most", "Krásnohorská Dlhá Lúka, cintorín", "Lipovník, zákruta", "Lipovník, žel. most", "Lipovník, železničná stanica", "Lipovník, č. d. 1", "Lipovník, obchádzka", "Lipovník, Jednota"];
+        // --- DATA (Vrátane tvojich nových liniek) ---
+        const zastavkyFull = [
+            "Jovice, aut. stanica", "Jovice, Jednota", "Jovice, rázc. Krh. Dlhá Lúka", 
+            "Pole, č. 1", "Pole, č. 2", "Krásnohorská Dlhá Lúka, rázc. Jovice", 
+            "Krásnohorská Dlhá Lúka, Jednota", "Krásnohorská Dlhá Lúka, most", 
+            "Krásnohorská Dlhá Lúka, cintorín", "Lipovník, zákruta", "Lipovník, žel. most", 
+            "Lipovník, železničná stanica", "Lipovník, č. d. 1", "Lipovník, obchádzka", "Lipovník, Jednota"
+        ];
+        
         const casyOdStanice = [0, 1, 2, 3, 5, 7, 8, 9, 10, 13, 15, 20, 23, 25, 27];
 
         const spoje = [
-            { id: "1", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "15:00", trasa: zastavkyFull, min: casyOdStanice, color: 'blue' },
-            { id: "2", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "15:35", trasa: [...zastavkyFull].reverse(), min: casyOdStanice, color: 'blue' },
-            { id: "3", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "15:20", trasa: zastavkyFull, min: casyOdStanice, color: 'blue' },
-            { id: "4", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "15:40", trasa: zastavkyFull, min: casyOdStanice, color: 'blue' },
-            { id: "5", cislo: "808423", smer: "Jovice ➔ K. D. Lúka", start: "15:20", trasa: zastavkyFull.slice(0, 7), min: casyOdStanice.slice(0, 7), color: 'red' },
-            { id: "6", cislo: "808423", smer: "K. D. Lúka ➔ Jovice", start: "15:40", trasa: zastavkyFull.slice(0, 7).reverse(), min: casyOdStanice.slice(0, 7), color: 'red' },
-            { id: "7", cislo: "808427", smer: "K. D. Lúka ➔ Lipovník", start: "15:10", trasa: zastavkyFull.slice(6), min: [0, 1, 2, 3, 6, 8, 13, 16, 18, 20], color: 'green' },
-            { id: "8", cislo: "808423", smer: "Jovice ➔ K. D. Lúka", start: "16:00", trasa: zastavkyFull.slice(0, 7), min: casyOdStanice.slice(0, 7), color: 'red' },
-            { id: "9", cislo: "808423", smer: "K. D. Lúka ➔ Jovice", start: "16:10", trasa: zastavkyFull.slice(0, 7).reverse(), min: casyOdStanice.slice(0, 7), color: 'red' }
+            { id: "1", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "15:00", trasa: zastavkyFull, min: casyOdStanice },
+            { id: "2", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "15:35", trasa: [...zastavkyFull].reverse(), min: casyOdStanice },
+            { id: "3", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "15:20", trasa: zastavkyFull, min: casyOdStanice },
+            { id: "4", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "15:40", trasa: zastavkyFull, min: casyOdStanice },
+            { id: "5", cislo: "808423", smer: "Jovice ➔ Krásnohorská Dlhá Lúka", start: "15:20", trasa: zastavkyFull.slice(0, 7), min: casyOdStanice.slice(0, 7) },
+            { id: "6", cislo: "808423", smer: "Krásnohorská Dlhá Lúka ➔ Jovice", start: "15:40", trasa: zastavkyFull.slice(0, 7).reverse(), min: casyOdStanice.slice(0, 7) },
+            { id: "7", cislo: "808427", smer: "Krásnohorská Dlhá Lúka ➔ Lipovník", start: "15:10", trasa: zastavkyFull.slice(6), min: [0, 1, 2, 3, 6, 8, 13, 16, 18, 20] },
+            { id: "8", cislo: "808423", smer: "Jovice ➔ Krásnohorská Dlhá Lúka", start: "16:00", trasa: zastavkyFull.slice(0, 7), min: casyOdStanice.slice(0, 7) },
+            { id: "9", cislo: "808423", smer: "Krásnohorská Dlhá Lúka ➔ Jovice", start: "16:10", trasa: zastavkyFull.slice(0, 7).reverse(), min: casyOdStanice.slice(0, 7) }
         ];
 
-        // Koordináty obcí pre mapu
-        const coords = {
-            "Jovice": [48.6369, 20.5564],
-            "K. D. Lúka": [48.6186, 20.5786],
-            "Lipovník": [48.6342, 20.6183]
-        };
-
-        let map, mapLoaded = false;
-
+        // --- FUNKCIE ---
         function pridajCas(start, plusMinuty) {
             let [h, m] = start.split(':').map(Number);
             let d = new Date(); d.setHours(h); d.setMinutes(m + plusMinuty);
             return d.getHours().toString().padStart(2, '0') + ":" + d.getMinutes().toString().padStart(2, '0');
-        }
-
-        function showPage(pageId, btn) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            btn.classList.add('active');
-            if(pageId === 'page-map' && !mapLoaded) initMap();
-        }
-
-        function initMap() {
-            map = L.map('map').setView([48.625, 20.58], 13);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-            
-            // Markery
-            L.marker(coords["Jovice"]).addTo(map).bindPopup("Jovice");
-            L.marker(coords["K. D. Lúka"]).addTo(map).bindPopup("Krh. Dlhá Lúka");
-            L.marker(coords["Lipovník"]).addTo(map).bindPopup("Lipovník");
-
-            // Trasy (čiary)
-            L.polyline([coords["Jovice"], coords["K. D. Lúka"], coords["Lipovník"]], {color: 'blue', weight: 5}).addTo(map); // 808425
-            L.polyline([coords["Jovice"], coords["K. D. Lúka"]], {color: 'red', weight: 3}).addTo(map); // 808423
-            L.polyline([coords["K. D. Lúka"], coords["Lipovník"]], {color: 'green', weight: 3}).addTo(map); // 808427
-            
-            mapLoaded = true;
         }
 
         function vykresliLinky() {
@@ -158,89 +128,131 @@
             spoje.forEach(spoj => {
                 let card = document.createElement('div');
                 card.className = 'bus-card';
-                card.innerHTML = `
-                    <div class="bus-summary" onclick="toggleDetails(this)">
-                        <div>
-                            <span class="line-badge">${spoj.cislo}</span>
-                            <strong>${spoj.smer}</strong><br>
-                            <small>Odchod: ${spoj.start} | <span id="spz-${spoj.id}">RV-JOVICE</span></small>
+                card.onclick = function() { this.classList.toggle('active'); };
+                
+                let html = `
+                    <div class="bus-summary">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div class="line-badge">${spoj.cislo}</div>
+                            <div><strong>${spoj.smer}</strong><br><small>Odchod: ${spoj.start}</small></div>
                         </div>
                         <span>▼</span>
                     </div>
                     <div class="bus-details">
-                        <div class="stations-list">
-                            ${spoj.trasa.map((z, i) => `
-                                <div class="station-item">
-                                    <span class="time">${pridajCas(spoj.start, spoj.min[i])}</span>
-                                    <span>${z}</span>
-                                </div>`).join('')}
+                        <div class="stations-list">`;
+                
+                spoj.trasa.forEach((z, i) => {
+                    html += `
+                        <div class="station-item">
+                            <span class="time">${pridajCas(spoj.start, spoj.min[i])}</span>
+                            <span>${z}</span>
+                        </div>`;
+                });
+
+                html += `
                         </div>
-                        <center><a href="#" class="btn-map" onclick="showPage('page-map', document.querySelectorAll('.nav-item')[1])">Zobraziť na mape</a></center>
+                        <div class="bus-footer">
+                            <span>Dopravca: <strong>SAD Jovice</strong></span>
+                            <span class="spz-tag" id="tag-${spoj.id}">RV-JOVICE</span>
+                        </div>
                     </div>`;
+                
+                card.innerHTML = html;
                 container.appendChild(card);
-                let opt = document.createElement('option'); opt.value = spoj.id; opt.innerText = `${spoj.cislo} (${spoj.start})`;
+
+                let opt = document.createElement('option');
+                opt.value = spoj.id;
+                opt.innerText = `${spoj.cislo} (${spoj.start})`;
                 select.appendChild(opt);
             });
         }
 
-        function toggleDetails(el) {
-            const details = el.nextElementSibling;
-            details.style.display = details.style.display === 'block' ? 'none' : 'block';
+        // --- MAPA ---
+        let leafletMap;
+        function toggleMap() {
+            const mapDiv = document.getElementById('map-container');
+            if (mapDiv.style.display === 'block') {
+                mapDiv.style.display = 'none';
+            } else {
+                mapDiv.style.display = 'block';
+                if (!leafletMap) {
+                    leafletMap = L.map('map').setView([48.628, 20.585], 13);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(leafletMap);
+                    
+                    const p_jovice = [48.6369, 20.5564];
+                    const p_luka = [48.6186, 20.5786];
+                    const p_lipovnik = [48.6342, 20.6183];
+
+                    L.marker(p_jovice).addTo(leafletMap).bindPopup("Jovice");
+                    L.marker(p_luka).addTo(leafletMap).bindPopup("Krh. Dlhá Lúka");
+                    L.marker(p_lipovnik).addTo(leafletMap).bindPopup("Lipovník");
+
+                    L.polyline([p_jovice, p_luka, p_lipovnik], {color: 'blue', weight: 4}).addTo(leafletMap);
+                }
+            }
         }
 
-        function applyChanges() {
+        // --- DISPEČING ---
+        function updateApp() {
             const note = document.getElementById('adminNote').value;
             const spz = document.getElementById('newSpz').value;
-            const lineId = document.getElementById('lineSelect').value;
+            const id = document.getElementById('lineSelect').value;
             
-            if(note) {
-                const bar = document.getElementById('alert-bar');
-                bar.innerText = "⚠️ " + note;
-                bar.style.display = 'block';
+            if (note) {
+                const oznam = document.getElementById('dispecing-oznam');
+                oznam.innerText = "⚠️ " + note;
+                oznam.style.display = "block";
             }
-            if(spz) {
-                document.getElementById('spz-' + lineId).innerText = spz;
+            if (spz) {
+                document.getElementById('tag-' + id).innerText = spz;
             }
-            alert("Zmeny boli aplikované lokálne!");
+            alert("Zmeny boli aplikované!");
         }
 
-        // --- ZDIEĽACIA LOGIKA ---
         function generateShareLink() {
             const note = encodeURIComponent(document.getElementById('adminNote').value);
             const spz = encodeURIComponent(document.getElementById('newSpz').value);
-            const lineId = document.getElementById('lineSelect').value;
-            
-            const shareUrl = window.location.origin + window.location.pathname + `?note=${note}&spz=${spz}&id=${lineId}`;
-            
-            navigator.clipboard.writeText(shareUrl);
-            alert("Odkaz bol skopírovaný! Pošli ho kamarátovi. Keď naň klikne, uvidí tvoje nastavenia.");
+            const id = document.getElementById('lineSelect').value;
+            const url = window.location.origin + window.location.pathname + `?note=${note}&spz=${spz}&id=${id}`;
+            navigator.clipboard.writeText(url);
+            alert("Link na aktuálny stav dispečingu bol skopírovaný! Pošli ho kamarátovi.");
         }
 
-        // Načítanie dát z odkazu (ak nejaký prišiel)
-        function checkParams() {
+        function loadFromParams() {
             const params = new URLSearchParams(window.location.search);
-            if(params.has('note')) {
-                const bar = document.getElementById('alert-bar');
-                bar.innerText = "⚠️ " + decodeURIComponent(params.get('note'));
-                bar.style.display = 'block';
+            if (params.has('note')) {
+                const oznam = document.getElementById('dispecing-oznam');
+                oznam.innerText = "⚠️ " + decodeURIComponent(params.get('note'));
+                oznam.style.display = "block";
             }
-            if(params.has('spz') && params.has('id')) {
+            if (params.has('spz') && params.has('id')) {
                 setTimeout(() => {
-                    const el = document.getElementById('spz-' + params.get('id'));
-                    if(el) el.innerText = decodeURIComponent(params.get('spz'));
+                    const tag = document.getElementById('tag-' + params.get('id'));
+                    if (tag) tag.innerText = decodeURIComponent(params.get('spz'));
                 }, 500);
             }
         }
 
-        function search() {
-            let input = document.getElementById('searchInput').value.toLowerCase();
-            document.querySelectorAll('.bus-card').forEach(card => {
-                card.style.display = card.innerText.toLowerCase().includes(input) ? "block" : "none";
+        function searchStation() {
+            let input = document.getElementById("searchInput").value.toLowerCase();
+            let list = document.getElementById("autocomplete-list");
+            list.innerHTML = "";
+            if (!input) return;
+            [...new Set(zastavkyFull)].forEach(z => {
+                if (z.toLowerCase().includes(input)) {
+                    let div = document.createElement("div");
+                    div.innerText = z;
+                    div.onclick = function() {
+                        document.getElementById("searchInput").value = z;
+                        list.innerHTML = "";
+                    };
+                    list.appendChild(div);
+                }
             });
         }
 
         vykresliLinky();
-        checkParams();
+        loadFromParams();
     </script>
 </body>
 </html>
