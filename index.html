@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAD Jovice - Gemer</title>
+    <title>SAD Jovice</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root { --primary: #FFD700; --secondary: #004a99; --bg: #e9ecef; --card: #ffffff; --text: #212529; }
@@ -20,8 +20,8 @@
         /* Vyhľadávanie - Pôvodný štýl */
         .search-box { background: var(--card); padding: 15px; border-radius: 12px; margin-top: 20px; margin-bottom: 20px; position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         input, select, textarea { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        .autocomplete-items { position: absolute; border: 1px solid #d4d4d4; background: white; z-index: 99; width: calc(100% - 30px); border-radius: 0 0 8px 8px; max-height: 200px; overflow-y: auto; }
-        .autocomplete-items div { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+        .autocomplete-items { position: absolute; border: 1px solid #d4d4d4; background: white; z-index: 100; width: calc(100% - 30px); border-radius: 0 0 8px 8px; max-height: 200px; overflow-y: auto; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .autocomplete-items div { padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; background: white; }
         .autocomplete-items div:hover { background-color: #e9e9e9; }
 
         /* Karty spojov - Pôvodný štýl */
@@ -52,7 +52,6 @@
         .btn-secondary { background: var(--secondary); color: white; }
         .btn-clear { background: #ff4d4d; color: white; margin-top: 5px; font-size: 12px; padding: 8px; }
         
-        /* Časový filter */
         .filter-row { display: flex; gap: 10px; align-items: center; margin-top: 5px; }
     </style>
 </head>
@@ -65,15 +64,15 @@
     </div>
 
     <div class="search-box">
-        <input type="text" id="searchInput" onkeyup="filterBuses()" placeholder="Kam cestujete? (napr. Lipovník)">
+        <input type="text" id="searchInput" onkeyup="showAutocomplete()" placeholder="Kam cestujete? (napr. Lipovník)" autocomplete="off">
         <div id="autocomplete-list" class="autocomplete-items"></div>
         
         <div class="filter-row">
-            <input type="time" id="timeInput" onchange="filterBuses()">
+            <input type="time" id="timeInput">
             <button class="btn" style="margin-top:0; width: auto; padding: 8px 12px; font-size: 12px;" onclick="clearTime()">ZRUŠIŤ ČAS</button>
         </div>
 
-        <button class="btn" onclick="alert('Vyhľadávam voľné bicykle...')">VYHĽADAŤ SPOJENIE</button>
+        <button class="btn" onclick="executeSearch()">VYHĽADAŤ SPOJENIE</button>
         <button class="btn btn-secondary" onclick="toggleMap()">ZOBRAZIŤ MAPU TRÁS</button>
     </div>
 
@@ -98,7 +97,7 @@
         <select id="lineSelect"></select>
         <input type="text" id="newSpz" placeholder="Napr. RV-BIKE-01">
         
-        <button class="btn" onclick="updateSpzOnly()">PRIRADIŤ ŠPZ</button>
+        <button class="btn" onclick="updateSpzOnly()">AKTUALIZOVAŤ GRAFIKON</button>
         <button class="btn" style="background:#28a745; color:white; margin-top:20px;" onclick="generateShareLink()">📤 ZDIEĽAŤ STAV KAMARÁTOVI</button>
     </div>
 
@@ -139,7 +138,6 @@
             spoje.forEach(spoj => {
                 let card = document.createElement('div');
                 card.className = 'bus-card';
-                card.dataset.smer = spoj.smer;
                 card.dataset.start = spoj.start;
                 card.dataset.stops = JSON.stringify(spoj.trasa);
                 card.onclick = function() { this.classList.toggle('active'); };
@@ -156,33 +154,50 @@
             });
         }
 
-        // --- FILTROVANIE (Zastávka + Čas) ---
-        function filterBuses() {
+        // --- AUTOKOMPLET (Našepkávač) ---
+        function showAutocomplete() {
             let input = document.getElementById("searchInput").value.toLowerCase();
-            let timeVal = document.getElementById("timeInput").value;
-            let cards = document.querySelectorAll('.bus-card');
+            let list = document.getElementById("autocomplete-list");
+            list.innerHTML = "";
+            if (!input) return;
 
-            cards.forEach(card => {
-                let trasa = JSON.parse(card.dataset.stops).map(s => s.toLowerCase());
-                let odchod = card.dataset.start;
-                
-                let matchesStation = input === "" || trasa.some(stop => stop.includes(input));
-                let matchesTime = timeVal === "" || odchod >= timeVal;
-
-                if (matchesStation && matchesTime) {
-                    card.style.display = "block";
-                } else {
-                    card.style.display = "none";
+            [...new Set(zastavkyFull)].forEach(z => {
+                if (z.toLowerCase().includes(input)) {
+                    let div = document.createElement("div");
+                    div.innerText = z;
+                    div.onclick = function() {
+                        document.getElementById("searchInput").value = z;
+                        list.innerHTML = "";
+                    };
+                    list.appendChild(div);
                 }
             });
         }
 
-        function clearTime() {
-            document.getElementById("timeInput").value = "";
-            filterBuses();
+        // --- HLAVNÉ VYHĽADÁVANIE (Filtruje až po kliknutí) ---
+        function executeSearch() {
+            let destination = document.getElementById("searchInput").value.toLowerCase();
+            let timeVal = document.getElementById("timeInput").value;
+            let cards = document.querySelectorAll('.bus-card');
+
+            cards.forEach(card => {
+                let stops = JSON.parse(card.dataset.stops).map(s => s.toLowerCase());
+                let departure = card.dataset.start;
+                
+                let matchesStation = destination === "" || stops.some(s => s.includes(destination));
+                let matchesTime = timeVal === "" || departure >= timeVal;
+
+                card.style.display = (matchesStation && matchesTime) ? "block" : "none";
+            });
+            // Schováme našepkávač po kliknutí na vyhľadať
+            document.getElementById("autocomplete-list").innerHTML = "";
         }
 
-        // --- DISPEČING ---
+        function clearTime() {
+            document.getElementById("timeInput").value = "";
+            executeSearch();
+        }
+
         function updateApp() {
             const note = document.getElementById('adminNote').value;
             if (note) {
@@ -204,11 +219,10 @@
             const id = document.getElementById('lineSelect').value;
             if (spz) {
                 document.getElementById('tag-' + id).innerText = spz;
-                alert("ŠPZ priradená!");
+                alert("Grafikon bol aktualizovaný!");
             }
         }
 
-        // --- MAPA (Farebné úseky) ---
         let leafletMap;
         function toggleMap() {
             const mapDiv = document.getElementById('map-container');
@@ -224,10 +238,7 @@
                     L.marker(p_jovice).addTo(leafletMap).bindPopup("Jovice");
                     L.marker(p_luka).addTo(leafletMap).bindPopup("Krh. Dlhá Lúka");
                     L.marker(p_lipovnik).addTo(leafletMap).bindPopup("Lipovník");
-                    
-                    // Jovice -> Dlhá Lúka (ČERVENÁ)
                     L.polyline([p_jovice, p_luka], {color: 'red', weight: 5}).addTo(leafletMap);
-                    // Dlhá Lúka -> Lipovník (MODRÁ)
                     L.polyline([p_luka, p_lipovnik], {color: 'blue', weight: 5}).addTo(leafletMap);
                 }
             }
@@ -239,7 +250,7 @@
             const id = document.getElementById('lineSelect').value;
             const url = window.location.origin + window.location.pathname + `?note=${note}&spz=${spz}&id=${id}`;
             navigator.clipboard.writeText(url);
-            alert("Odkaz pre kamaráta je v schránke!");
+            alert("Link na stav dispečingu je skopírovaný!");
         }
 
         function loadFromParams() {
@@ -257,25 +268,12 @@
             }
         }
 
-        function searchStation() {
-            let input = document.getElementById("searchInput").value.toLowerCase();
-            let list = document.getElementById("autocomplete-list");
-            list.innerHTML = "";
-            if (!input) { filterBuses(); return; }
-            [...new Set(zastavkyFull)].forEach(z => {
-                if (z.toLowerCase().includes(input)) {
-                    let div = document.createElement("div");
-                    div.innerText = z;
-                    div.onclick = function() {
-                        document.getElementById("searchInput").value = z;
-                        list.innerHTML = "";
-                        filterBuses();
-                    };
-                    list.appendChild(div);
-                }
-            });
-            filterBuses();
-        }
+        // Zavrieť našepkávač pri kliknutí mimo
+        document.addEventListener("click", function (e) {
+            if (e.target.id !== "searchInput") {
+                document.getElementById("autocomplete-list").innerHTML = "";
+            }
+        });
 
         vykresliLinky();
         loadFromParams();
