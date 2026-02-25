@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAD Jovice - Gemer</title>
+    <style>
+        :root { --primary: #FFD700; --secondary: #004a99; --bg: #e9ecef; --card: #ffffff; --text: #212529; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--bg); margin: 0; padding: 15px; color: var(--text); }
+        
+        /* Hlavička */
+        .header { background: var(--secondary); color: white; padding: 25px 15px; border-radius: 0 0 20px 20px; text-align: center; margin: -15px -15px 20px -15px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .header h1 { margin: 0; font-size: 28px; }
+        .header p { margin: 5px 0 0; font-style: italic; font-size: 14px; }
+
+        /* Vyhľadávanie */
+        .search-box { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 20px; position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        input, select { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        .autocomplete-items { position: absolute; border: 1px solid #d4d4d4; background: white; z-index: 99; width: calc(100% - 30px); border-radius: 0 0 8px 8px; max-height: 200px; overflow-y: auto; }
+        .autocomplete-items div { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+        .autocomplete-items div:hover { background-color: #e9e9e9; }
+
+        /* Karty spojov */
+        .bus-card { background: var(--card); border-radius: 12px; margin-bottom: 15px; overflow: hidden; box-shadow: 0 3px 6px rgba(0,0,0,0.1); border: 1px solid #ddd; cursor: pointer; }
+        .bus-summary { padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .line-badge { background: var(--secondary); color: white; min-width: 70px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-weight: bold; font-size: 13px; }
+        
+        .bus-details { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; background: #fdfdfd; border-top: 1px dashed #ccc; }
+        .bus-card.active .bus-details { max-height: 1200px; }
+        
+        .stations-list { padding: 15px; list-style: none; margin: 0; }
+        .station-item { display: flex; gap: 15px; margin-bottom: 8px; position: relative; font-size: 14px; }
+        .station-item::before { content: ''; width: 2px; background: #ddd; position: absolute; left: 44px; top: 15px; bottom: -15px; }
+        .station-item:last-child::before { display: none; }
+        .time { font-weight: bold; color: var(--secondary); min-width: 45px; z-index: 1; }
+
+        .bus-footer { padding: 12px; background: #f1f1f1; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .spz-tag { background: white; padding: 4px 10px; border: 2px solid #333; border-radius: 5px; font-family: monospace; font-weight: bold; }
+
+        /* Admin / Dispečing */
+        .admin-panel { background: #333; color: white; padding: 20px; border-radius: 12px; margin-top: 30px; }
+        .btn { background: var(--primary); border: none; padding: 12px; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 10px; font-size: 16px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>SAD JOVICE</h1>
+        <p>"Váš dopravný sprievodca Gemerom"</p>
+    </div>
+
+    <div class="search-box">
+        <input type="text" id="searchInput" onkeyup="searchStation()" placeholder="Kam cestujete? (napr. Lipovník)">
+        <div id="autocomplete-list" class="autocomplete-items"></div>
+        <button class="btn" onclick="alert('Vyhľadávam voľné bicykle...')">VYHĽADAŤ SPOJENIE</button>
+    </div>
+
+    <div id="links-container">
+        </div>
+
+    <div class="admin-panel">
+        <strong>🔧 DISPEČING (Vypraviť vozidlo)</strong><br>
+        <small>Vyberte spoj a priraďte mu ŠPZ na dnes:</small>
+        <select id="lineSelect"></select>
+        <input type="text" id="newSpz" placeholder="Napr. RV-BIKE-01">
+        <button class="btn" onclick="updateSpz()">AKTUALIZOVAŤ GRAFIKON</button>
+    </div>
+
+    <script>
+        // --- DATA ---
+        const zastavkyFull = [
+            "Jovice, aut. stanica", "Jovice, Jednota", "Jovice, rázc. Krh. Dlhá Lúka", 
+            "Pole, č. 1", "Pole, č. 2", "Krásnohorská Dlhá Lúka, rázc. Jovice", 
+            "Krásnohorská Dlhá Lúka, Jednota", "Krásnohorská Dlhá Lúka, most", 
+            "Krásnohorská Dlhá Lúka, cintorín", "Lipovník, zákruta", "Lipovník, žel. most", 
+            "Lipovník, železničná stanica", "Lipovník, č. d. 1", "Lipovník, obchádzka", "Lipovník, Jednota"
+        ];
+        
+        const casyOdStanice = [0, 1, 2, 3, 5, 7, 8, 9, 10, 13, 15, 20, 23, 25, 27];
+
+        const spoje = [
+            { id: "1", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "15:00", trasa: zastavkyFull, min: casyOdStanice },
+            { id: "2", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "15:35", trasa: [...zastavkyFull].reverse(), min: casyOdStanice },
+            { id: "3", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "15:20", trasa: zastavkyFull, min: casyOdStanice },
+            { id: "4", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "15:40", trasa: zastavkyFull, min: casyOdStanice },
+            { id: "5", cislo: "808423", smer: "Jovice ➔ Krásnohorská Dlhá Lúka", start: "15:20", trasa: zastavkyFull.slice(0, 7), min: casyOdStanice.slice(0, 7) },
+            { id: "6", cislo: "808423", smer: "Krásnohorská Dlhá Lúka ➔ Jovice", start: "15:40", trasa: zastavkyFull.slice(0, 7).reverse(), min: casyOdStanice.slice(0, 7) },
+            { id: "7", cislo: "808427", smer: "Krásnohorská Dlhá Lúka ➔ Lipovník", start: "15:10", trasa: zastavkyFull.slice(6), min: [0, 1, 2, 3, 6, 8, 13, 16, 18, 20] },
+            // Nové duplikované linky o 16:00 a 16:10
+            { id: "8", cislo: "808423", smer: "Jovice ➔ Krásnohorská Dlhá Lúka", start: "16:00", trasa: zastavkyFull.slice(0, 7), min: casyOdStanice.slice(0, 7) },
+            { id: "9", cislo: "808423", smer: "Krásnohorská Dlhá Lúka ➔ Jovice", start: "16:10", trasa: zastavkyFull.slice(0, 7).reverse(), min: casyOdStanice.slice(0, 7) }
+        ];
+
+        // --- FUNKCIE ---
+        function pridajCas(start, plusMinuty) {
+            let [h, m] = start.split(':').map(Number);
+            let d = new Date(); d.setHours(h); d.setMinutes(m + plusMinuty);
+            return d.getHours().toString().padStart(2, '0') + ":" + d.getMinutes().toString().padStart(2, '0');
+        }
+
+        function vykresliLinky() {
+            const container = document.getElementById('links-container');
+            const select = document.getElementById('lineSelect');
+            
+            spoje.forEach(spoj => {
+                let card = document.createElement('div');
+                card.className = 'bus-card';
+                card.onclick = function() { this.classList.toggle('active'); };
+                
+                let html = `
+                    <div class="bus-summary">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div class="line-badge">${spoj.cislo}</div>
+                            <div><strong>${spoj.smer}</strong><br><small>Odchod: ${spoj.start}</small></div>
+                        </div>
+                        <span>▼</span>
+                    </div>
+                    <div class="bus-details">
+                        <div class="stations-list">`;
+                
+                spoj.trasa.forEach((z, i) => {
+                    html += `
+                        <div class="station-item">
+                            <span class="time">${pridajCas(spoj.start, spoj.min[i])}</span>
+                            <span>${z}</span>
+                        </div>`;
+                });
+
+                html += `
+                        </div>
+                        <div class="bus-footer">
+                            <span>Dopravca: <strong>SAD Jovice</strong></span>
+                            <span class="spz-tag" id="tag-${spoj.id}">RV-JOVICE</span>
+                        </div>
+                    </div>`;
+                
+                card.innerHTML = html;
+                container.appendChild(card);
+
+                // Pridanie do admin selectu
+                let opt = document.createElement('option');
+                opt.value = spoj.id;
+                opt.innerText = `${spoj.cislo} (${spoj.start})`;
+                select.appendChild(opt);
+            });
+        }
+
+        function searchStation() {
+            let input = document.getElementById("searchInput").value.toLowerCase();
+            let list = document.getElementById("autocomplete-list");
+            list.innerHTML = "";
+            if (!input) return;
+            
+            // Unikátne názvy zastávok pre našepkávač
+            [...new Set(zastavkyFull)].forEach(z => {
+                if (z.toLowerCase().includes(input)) {
+                    let div = document.createElement("div");
+                    div.innerText = z;
+                    div.onclick = function() {
+                        document.getElementById("searchInput").value = z;
+                        list.innerHTML = "";
+                    };
+                    list.appendChild(div);
+                }
+            });
+        }
+
+        function updateSpz() {
+            const id = document.getElementById('lineSelect').value;
+            const spz = document.getElementById('newSpz').value;
+            if(spz) {
+                document.getElementById('tag-' + id).innerText = spz;
+                alert('Vozidlo úspešne priradené k linke!');
+            }
+        }
+
+        // Spusti pri načítaní
+        vykresliLinky();
+    </script>
+</body>
+</html>
