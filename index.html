@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAD Jovice - Gemer</title>
+    <title>SAD Jovice</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root { --primary: #FFD700; --secondary: #004a99; --bg: #e9ecef; --card: #ffffff; --text: #212529; }
@@ -114,14 +114,14 @@
             { id: "7", cislo: "808427", smer: "Krh. Dlhá Lúka ➔ Lipovník", start: "15:10", trasa: zastavkyJoviceLipovnik.slice(7), min: [0, 1, 2, 3, 6, 8, 13, 16, 18, 20] },
             
             // ŠKOLSKÝ SPOJ Č. 1 (Špeciálne zachované názvy Jovice, Jednota)
-            { id: "S1", cislo: "1", smer: "Jovice, Jednota ➔ Materská škôlka", start: "15:51", trasa: ["Jovice, Jednota", "Jovice, aut. stanica", "Jovice, materská škôlka"], min: [0, 1, 2] },
-            { id: "S2", cislo: "1", smer: "Materská škôlka ➔ Jovice, Jednota", start: "15:59", trasa: ["Jovice, materská škôlka", "Jovice, Jednota"], min: [0, 1] },
+            { id: "S1", cislo: "1", smer: "Jovice, Jednota ➔ Jovice, materská škôlka", start: "15:51", trasa: ["Jovice, Jednota", "Jovice, aut. stanica", "Jovice, materská škôlka"], min: [0, 1, 2] },
+            { id: "S2", cislo: "1", smer: "Jovice, materská škôlka ➔ Jovice, Jednota", start: "15:59", trasa: ["Jovice, materská škôlka", "Jovice, Jednota"], min: [0, 1] },
 
             // LINKA 808426
             { id: "R1", cislo: "808426", smer: "Jovice ➔ Rožňava, AS", start: "15:00", trasa: ["Jovice, aut. stanica", "Jovice, č.d. 25", "Jovice, rozvodňa", "Jovice, CWT Metal", "Brzotín, Badinotti", "Rožňava, žel. priecestie", "Rožňava, eurobus", "Rožňava, Kaufland", "Rožňava, úrad práce", "Rožňava, Šafárikova ulica", "Rožňava, AS"], min: [0, 1, 4, 6, 8, 10, 15, 17, 19, 21, 23] },
 
             // LETNÝ SPOJ 808478 (Tiež s Jovice, Jednota)
-            { id: "L1", cislo: "808478", smer: "Jovice, Jednota ➔ pod lesom", start: "12:00", trasa: ["Jovice, Jednota", "Jovice, stred", "Jovice, pod lesom"], min: [0, 1, 2] },
+            { id: "L1", cislo: "808478", smer: "Jovice, Jednota ➔ Jovice, pod lesom", start: "12:00", trasa: ["Jovice, Jednota", "Jovice, stred", "Jovice, pod lesom"], min: [0, 1, 2] },
             { id: "L2", cislo: "808478", smer: "Jovice, pod lesom ➔ Jovice, Jednota", start: "12:03", trasa: ["Jovice, pod lesom", "Jovice, stred", "Jovice, Jednota"], min: [0, 1, 2] }
         ];
 
