@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAD Jovice</title>
+    <title>SAD Jovice - Gemer</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root { --primary: #FFD700; --secondary: #004a99; --bg: #e9ecef; --card: #ffffff; --text: #212529; }
@@ -80,7 +80,6 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         // --- DATA ---
-        // Hlavná trasa s tvojím poradím (Hradná ul., odbočka -> futbalové ihrisko)
         const zastavkyJoviceLipovnik = [
             "Jovice, aut. stanica", 
             "Jovice, Hradná ul., most", 
@@ -106,7 +105,7 @@
             { id: "3", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "15:20", trasa: zastavkyJoviceLipovnik, min: casyJoviceLipovnik },
             { id: "4", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "15:40", trasa: zastavkyJoviceLipovnik, min: casyJoviceLipovnik },
             { id: "Spiat_1", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "15:55", trasa: zastavkyLipovnikJovice, min: casyLipovnikJovice },
-            { id: "Spiat_2", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "16:15", trasa: zastavkyLipovnikJovice, min: casyLipovnikJovice }, // NOVÝ SPOJ 16:15
+            { id: "Spiat_2", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "16:15", trasa: zastavkyLipovnikJovice, min: casyLipovnikJovice },
             
             { id: "5", cislo: "808423", smer: "Jovice ➔ Krh. Dlhá Lúka", start: "15:20", trasa: zastavkyJoviceLipovnik.slice(0, 9), min: casyJoviceLipovnik.slice(0, 9) },
             { id: "6", cislo: "808423", smer: "Krh. Dlhá Lúka ➔ Jovice", start: "15:40", trasa: zastavkyJoviceLipovnik.slice(0, 9).reverse(), min: [0, 1, 2, 3, 5, 6, 7, 8, 9] },
@@ -207,6 +206,14 @@
                 if (!leafletMap) {
                     leafletMap = L.map('map').setView([48.628, 20.585], 13);
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(leafletMap);
+                    
+                    // VRÁTENÉ TRASY NA MAPE
+                    const p_jovice = [48.6369, 20.5564], p_luka = [48.6186, 20.5786], p_lipovnik = [48.6342, 20.6183];
+                    L.marker(p_jovice).addTo(leafletMap).bindPopup("Jovice");
+                    L.marker(p_luka).addTo(leafletMap).bindPopup("Krh. Dlhá Lúka");
+                    L.marker(p_lipovnik).addTo(leafletMap).bindPopup("Lipovník");
+                    L.polyline([p_jovice, p_luka], {color: 'red', weight: 5}).addTo(leafletMap);
+                    L.polyline([p_luka, p_lipovnik], {color: 'blue', weight: 5}).addTo(leafletMap);
                 }
             }
         }
