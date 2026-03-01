@@ -80,11 +80,11 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         // --- DATA ---
-        // Definícia základnej trasy s opraveným poradím (ihrisko ZA odbočkou)
+        // Hlavná trasa s tvojím poradím (Hradná ul., odbočka -> futbalové ihrisko)
         const zastavkyJoviceLipovnik = [
             "Jovice, aut. stanica", 
             "Jovice, Hradná ul., most", 
-            "Jovice, Hradná ul., odbočka", // Odbočka je teraz pred ihriskom
+            "Jovice, Hradná ul., odbočka", 
             "Jovice, futbalové ihrisko", 
             "Pole, č. 1", "Pole, č. 2", 
             "Krásnohorská Dlhá Lúka, západ", 
@@ -105,21 +105,18 @@
             { id: "2", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "15:35", trasa: zastavkyLipovnikJovice, min: casyLipovnikJovice },
             { id: "3", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "15:20", trasa: zastavkyJoviceLipovnik, min: casyJoviceLipovnik },
             { id: "4", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "15:40", trasa: zastavkyJoviceLipovnik, min: casyJoviceLipovnik },
-            { id: "Spiat_L", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "15:55", trasa: zastavkyLipovnikJovice, min: casyLipovnikJovice },
+            { id: "Spiat_1", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "15:55", trasa: zastavkyLipovnikJovice, min: casyLipovnikJovice },
+            { id: "Spiat_2", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "16:15", trasa: zastavkyLipovnikJovice, min: casyLipovnikJovice }, // NOVÝ SPOJ 16:15
             
-            { id: "5", cislo: "808423", smer: "Jovice ➔ Krásnohorská Dlhá Lúka", start: "15:20", trasa: zastavkyJoviceLipovnik.slice(0, 9), min: casyJoviceLipovnik.slice(0, 9) },
-            { id: "6", cislo: "808423", smer: "Krásnohorská Dlhá Lúka ➔ Jovice", start: "15:40", trasa: zastavkyJoviceLipovnik.slice(0, 9).reverse(), min: [0, 1, 2, 3, 5, 6, 7, 8, 9] },
-            { id: "7", cislo: "808427", smer: "Krásnohorská Dlhá Lúka ➔ Lipovník", start: "15:10", trasa: zastavkyJoviceLipovnik.slice(7), min: [0, 1, 2, 3, 6, 8, 13, 16, 18, 20] },
+            { id: "5", cislo: "808423", smer: "Jovice ➔ Krh. Dlhá Lúka", start: "15:20", trasa: zastavkyJoviceLipovnik.slice(0, 9), min: casyJoviceLipovnik.slice(0, 9) },
+            { id: "6", cislo: "808423", smer: "Krh. Dlhá Lúka ➔ Jovice", start: "15:40", trasa: zastavkyJoviceLipovnik.slice(0, 9).reverse(), min: [0, 1, 2, 3, 5, 6, 7, 8, 9] },
             
-            // ŠKOLSKÝ SPOJ Č. 1 (Jednota zachovaná)
-            { id: "S1", cislo: "1", smer: "Jovice, Jednota ➔ Jovice, materská škôlka", start: "15:51", trasa: ["Jovice, Jednota", "Jovice, aut. stanica", "Jovice, materská škôlka"], min: [0, 1, 2] },
-            { id: "S2", cislo: "1", smer: "Jovice, materská škôlka ➔ Jovice, Jednota", start: "15:59", trasa: ["Jovice, materská škôlka", "Jovice, Jednota"], min: [0, 1] },
+            { id: "S1", cislo: "1", smer: "Jovice, Jednota ➔ Materská škôlka", start: "15:51", trasa: ["Jovice, Jednota", "Jovice, aut. stanica", "Jovice, materská škôlka"], min: [0, 1, 2] },
+            { id: "S2", cislo: "1", smer: "Materská škôlka ➔ Jovice, Jednota", start: "15:59", trasa: ["Jovice, materská škôlka", "Jovice, Jednota"], min: [0, 1] },
 
-            // LINKA 808426
             { id: "R1", cislo: "808426", smer: "Jovice ➔ Rožňava, AS", start: "15:00", trasa: ["Jovice, aut. stanica", "Jovice, č.d. 25", "Jovice, rozvodňa", "Jovice, CWT Metal", "Brzotín, Badinotti", "Rožňava, žel. priecestie", "Rožňava, eurobus", "Rožňava, Kaufland", "Rožňava, úrad práce", "Rožňava, Šafárikova ulica", "Rožňava, AS"], min: [0, 1, 4, 6, 8, 10, 15, 17, 19, 21, 23] },
 
-            // LETNÝ SPOJ 808478 (Jednota zachovaná)
-            { id: "L1", cislo: "808478", smer: "Jovice, Jednota ➔ Jovice, pod lesom", start: "12:00", trasa: ["Jovice, Jednota", "Jovice, stred", "Jovice, pod lesom"], min: [0, 1, 2] },
+            { id: "L1", cislo: "808478", smer: "Jovice, Jednota ➔ pod lesom", start: "12:00", trasa: ["Jovice, Jednota", "Jovice, stred", "Jovice, pod lesom"], min: [0, 1, 2] },
             { id: "L2", cislo: "808478", smer: "Jovice, pod lesom ➔ Jovice, Jednota", start: "12:03", trasa: ["Jovice, pod lesom", "Jovice, stred", "Jovice, Jednota"], min: [0, 1, 2] }
         ];
 
@@ -210,12 +207,6 @@
                 if (!leafletMap) {
                     leafletMap = L.map('map').setView([48.628, 20.585], 13);
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(leafletMap);
-                    const p_jovice = [48.6369, 20.5564], p_luka = [48.6186, 20.5786], p_lipovnik = [48.6342, 20.6183];
-                    L.marker(p_jovice).addTo(leafletMap).bindPopup("Jovice");
-                    L.marker(p_luka).addTo(leafletMap).bindPopup("Krh. Dlhá Lúka");
-                    L.marker(p_lipovnik).addTo(leafletMap).bindPopup("Lipovník");
-                    L.polyline([p_jovice, p_luka], {color: 'red', weight: 5}).addTo(leafletMap);
-                    L.polyline([p_luka, p_lipovnik], {color: 'blue', weight: 5}).addTo(leafletMap);
                 }
             }
         }
@@ -229,27 +220,7 @@
             alert("Link skopírovaný!");
         }
 
-        function loadFromParams() {
-            const params = new URLSearchParams(window.location.search);
-            if (params.has('note') && params.get('note') !== "") {
-                const oznam = document.getElementById('dispecing-oznam');
-                oznam.innerText = "⚠️ " + decodeURIComponent(params.get('note'));
-                oznam.style.display = "block";
-            }
-            if (params.has('spz') && params.has('id')) {
-                setTimeout(() => {
-                    const tag = document.getElementById('tag-' + params.get('id'));
-                    if (tag) tag.innerText = decodeURIComponent(params.get('spz'));
-                }, 500);
-            }
-        }
-
-        document.addEventListener("click", function (e) {
-            if (e.target.id !== "searchInput") { document.getElementById("autocomplete-list").innerHTML = ""; }
-        });
-
         vykresliLinky();
-        loadFromParams();
     </script>
 </body>
 </html>
