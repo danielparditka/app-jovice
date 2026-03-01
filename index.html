@@ -105,7 +105,6 @@
         const zastavkyLipovnikJovice = [...zastavkyJoviceLipovnik].reverse();
         const casyLipovnikJovice = [0, 2, 4, 7, 12, 14, 17, 18, 19, 20, 21, 23, 25, 26, 27, 28, 29];
 
-        // Definícia novej trasy pre 808426
         const trasa808426_tam = ["Krásnohorská Dlhá Lúka, kríž", "Krásnohorská Dlhá Lúka, západ", "Pole, č. 2", "Pole, č. 1", "Jovice, futbalové ihrisko", "Jovice, Hradná ul., odbočka", "Jovice, Hradná ul., most", "Jovice, aut. stanica", "Jovice, č.d. 25", "Jovice, rozvodňa", "Jovice, CWT Metal", "Brzotín, Badinotti", "Rožňava, žel. priecestie", "Rožňava, eurobus", "Rožňava, Kaufland", "Rožňava, úrad práce", "Rožňava, Šafárikova ulica", "Rožňava, AS"];
         const minuty808426_tam = [0, 1, 3, 5, 6, 7, 8, 9, 10, 13, 15, 17, 19, 24, 26, 28, 30, 32];
         
@@ -124,10 +123,9 @@
             { id: "S1", cislo: "1", smer: "Jovice, Jednota ➔ Jovice, materská škôlka", start: "15:51", trasa: ["Jovice, Jednota", "Jovice, aut. stanica", "Jovice, materská škôlka"], min: [0, 1, 2] },
             { id: "S2", cislo: "1", smer: "Jovice, materská škôlka ➔ Jovice, Jednota", start: "15:59", trasa: ["Jovice, materská škôlka", "Jovice, Jednota"], min: [0, 1] },
             
-            // Upravená linka 808426 Tam
-            { id: "R1", cislo: "808426", smer: "Krásnohorská Dlhá Lúka, kríž ➔ Rožňava, AS", start: "15:00", trasa: trasa808426_tam, min: minuty808426_tam },
+            // Linka 808426 Tam s vypočítaným odchodom 14:51
+            { id: "R1", cislo: "808426", smer: "Krásnohorská Dlhá Lúka, kríž ➔ Rožňava, AS", start: "14:51", trasa: trasa808426_tam, min: minuty808426_tam },
             
-            // Nová linka 808426 Späť
             { id: "R2", cislo: "808426", smer: "Rožňava, AS ➔ Krásnohorská Dlhá Lúka, kríž", start: "15:40", trasa: trasa808426_spat, min: minuty808426_spat },
             
             { id: "L1", cislo: "808478", smer: "Jovice, Jednota ➔ Jovice, pod lesom", start: "12:00", trasa: ["Jovice, Jednota", "Jovice, stred", "Jovice, pod lesom"], min: [0, 1, 2] },
