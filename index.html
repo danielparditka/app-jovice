@@ -9,11 +9,10 @@
         :root { --primary: #FFD700; --secondary: #004a99; --bg: #e9ecef; --card: #ffffff; --text: #212529; --success: #28a745; --danger: #dc3545; }
         body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--bg); margin: 0; padding: 15px; color: var(--text); }
         
-        /* HLAVIČKA S TVOJÍM LOGOM */
+        /* NÁVRAT K PÔVODNÉMU TEXTOVÉMU LOGU */
         .header { background: var(--secondary); color: white; padding: 25px 15px; border-radius: 0 0 20px 20px; text-align: center; margin: -15px -15px 20px -15px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-        .logo-box { background: white; display: inline-block; padding: 10px; border-radius: 10px; margin-bottom: 10px; }
-        .logo-box img { max-width: 250px; height: auto; display: block; }
-        .header p { margin: 5px 0 0; font-style: italic; font-size: 14px; }
+        .logo-text { font-size: 28px; font-weight: bold; letter-spacing: 2px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .header p { margin: 5px 0 0; font-style: italic; font-size: 14px; opacity: 0.9; }
 
         #dispecing-oznam { background: var(--primary); color: black; padding: 10px; border-radius: 8px; margin-top: 15px; text-align: center; font-weight: bold; display: none; border: 2px solid #333; }
         .search-box { background: var(--card); padding: 15px; border-radius: 12px; margin-top: 20px; margin-bottom: 20px; position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
@@ -27,7 +26,7 @@
         .bus-summary { padding: 15px; display: flex; justify-content: space-between; align-items: center; }
         .line-badge { background: var(--secondary); color: white; min-width: 70px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-weight: bold; font-size: 13px; }
         
-        /* STATUS A IKONKY */
+        /* NOVÉ META INFORMÁCIE (Ikonky a Status) */
         .bus-meta { display: flex; align-items: center; gap: 10px; margin-top: 5px; }
         .status-tag { font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 10px; text-transform: uppercase; border: 1px solid currentColor; }
         .status-ontime { color: var(--success); }
@@ -57,9 +56,7 @@
 <body>
 
     <div class="header">
-        <div class="logo-box">
-            <img src="https://lh3.googleusercontent.com/d/1vCsh2R8F7VzH_35l-X6B4V1S2J1q_G8T" alt="SAD Jovice Logo" onerror="this.src='https://via.placeholder.com/250x100?text=SAD+JOVICE+LOGO'">
-        </div>
+        <div class="logo-text">SAD JOVICE</div>
         <p>"Váš dopravný sprievodca Gemerom"</p>
         <div id="dispecing-oznam"></div>
     </div>
@@ -108,17 +105,10 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        const zastavkyJoviceLipovnik = [
-            "Jovice, aut. stanica", "Jovice, Hradná ul., most", "Jovice, Hradná ul., odbočka", "Jovice, futbalové ihrisko", 
-            "Pole, č. 1", "Pole, č. 2", "Krásnohorská Dlhá Lúka, západ", "Krásnohorská Dlhá Lúka, kríž",
-            "Krásnohorská Dlhá Lúka, Jednota", "Krásnohorská Dlhá Lúka, most", "Krásnohorská Dlhá Lúka, cintorín", 
-            "Lipovník, zákruta", "Lipovník, žel. most", "Lipovník, železničná stanica", "Lipovník, č. d. 1", "Lipovník, obchádzka", "Lipovník, Jednota"
-        ];
-        
+        const zastavkyJoviceLipovnik = ["Jovice, aut. stanica", "Jovice, Hradná ul., most", "Jovice, Hradná ul., odbočka", "Jovice, futbalové ihrisko", "Pole, č. 1", "Pole, č. 2", "Krásnohorská Dlhá Lúka, západ", "Krásnohorská Dlhá Lúka, kríž", "Krásnohorská Dlhá Lúka, Jednota", "Krásnohorská Dlhá Lúka, most", "Krásnohorská Dlhá Lúka, cintorín", "Lipovník, zákruta", "Lipovník, žel. most", "Lipovník, železničná stanica", "Lipovník, č. d. 1", "Lipovník, obchádzka", "Lipovník, Jednota"];
         const casyJoviceLipovnik = [0, 1, 2, 3, 4, 6, 8, 9, 10, 11, 12, 15, 17, 22, 25, 27, 29];
         const zastavkyLipovnikJovice = [...zastavkyJoviceLipovnik].reverse();
         const casyLipovnikJovice = [0, 2, 4, 7, 12, 14, 17, 18, 19, 20, 21, 23, 25, 26, 27, 28, 29];
-
         const spoje = [
             { id: "1", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "15:00", trasa: zastavkyJoviceLipovnik, min: casyJoviceLipovnik },
             { id: "2", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "15:35", trasa: zastavkyLipovnikJovice, min: casyLipovnikJovice },
