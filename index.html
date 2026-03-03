@@ -33,29 +33,25 @@
         .bus-details { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; background: #fdfdfd; border-top: 1px dashed #ccc; }
         .bus-card.active .bus-details { max-height: 1500px; }
         
-        /* --- PRECOZNÁ ÚPRAVA SLEDOVANIA TRASY --- */
         .stations-list { padding: 20px 15px; list-style: none; margin: 0; position: relative; }
         .station-item { display: flex; align-items: center; gap: 0; height: 45px; position: relative; font-size: 14px; z-index: 2; }
         .time { font-weight: bold; color: var(--secondary); min-width: 50px; text-align: left; }
         
         .track-col { width: 40px; display: flex; justify-content: center; align-items: center; position: relative; height: 100%; }
         
-        /* Základná sivá čiara */
         .track-line-bg { position: absolute; width: 4px; background: #ddd; top: 0; bottom: 0; z-index: 1; border-radius: 2px; }
         .station-item:first-child .track-line-bg { top: 50%; }
         .station-item:last-child .track-line-bg { bottom: 50%; }
 
-        /* Modrá stopa za autobusom */
-        .track-line-progress { position: absolute; width: 4px; background: var(--secondary); top: 50%; height: 0%; z-index: 2; border-radius: 2px; transition: height 0.5s linear; }
+        .track-line-progress { position: absolute; width: 4px; background: var(--secondary); top: 22px; height: 0; z-index: 2; border-radius: 2px; }
         
         .dot { width: 10px; height: 10px; background: #ccc; border-radius: 50%; border: 2px solid white; z-index: 3; transition: background 0.3s; }
         .dot.reached { background: var(--secondary); }
         
-        /* Ikonka autobusu - presne na stred čiary */
-        .live-bus-icon { position: absolute; left: 74px; /* Pozícia presne nad track-col */ transform: translate(-50%, -50%); font-size: 18px; z-index: 10; display: none; pointer-events: none; }
+        /* OPRAVA: Ikonka je teraz presne v strede stĺpca track-col */
+        .live-bus-icon { position: absolute; left: 50%; transform: translate(-50%, -50%); font-size: 18px; z-index: 10; display: none; pointer-events: none; }
         
         .station-name { flex: 1; padding-left: 10px; }
-        /* --------------------------------------- */
 
         .bus-footer { padding: 12px; background: #f1f1f1; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
         .spz-tag { background: white; padding: 4px 10px; border: 2px solid #333; border-radius: 5px; font-family: monospace; font-weight: bold; }
@@ -182,6 +178,7 @@
                             <div class="track-line-bg"></div>
                             ${i === 0 ? `<div id="progress-${spoj.id}" class="track-line-progress"></div>` : ''}
                             <div class="dot" id="dot-${spoj.id}-${i}"></div>
+                            ${i === 0 ? `<div id="live-bus-${spoj.id}" class="live-bus-icon">🚌</div>` : ''}
                         </div>
                         <span class="station-name">${z}</span>
                     </div>
@@ -207,7 +204,6 @@
                     </div>
                     <div class="bus-details">
                         <div class="stations-list">
-                            <div id="live-bus-${spoj.id}" class="live-bus-icon">🚌</div>
                             ${rows}
                         </div>
                         <div class="bus-footer">
@@ -233,37 +229,44 @@
                 }
 
                 const [h, m] = spoj.start.split(':').map(Number);
-                const startD = new Date(); startD.setHours(h, m, 0);
-                const konecMin = spoj.min[spoj.min.length-1];
-                const koniecD = new Date(startD.getTime() + konecMin * 60000);
+                const startD = new Date(); startD.setHours(h, m, 0, 0);
+                const koniecMin = spoj.min[spoj.min.length-1];
+                const koniecD = new Date(startD.getTime() + koniecMin * 60000);
                 
                 const busIcon = document.getElementById(`live-bus-${spoj.id}`);
                 const progressLine = document.getElementById(`progress-${spoj.id}`);
 
                 if (teraz >= startD) {
-                    let ubehloMin = (teraz - startD) / 60000;
-                    let totalHeight = (spoj.trasa.length - 1) * 45;
-                    let progressPercent = Math.min(ubehloMin / (konecMin || 1), 1);
+                    let ubehloSekundy = (teraz - startD) / 1000;
+                    let celkovoSekundy = koniecMin * 60;
+                    let progressPercent = Math.min(ubehloSekundy / (celkovoSekundy || 1), 1);
                     
+                    let itemHeight = 45;
+                    let totalHeight = (spoj.trasa.length - 1) * itemHeight;
+
                     // Aktualizácia modrej stopy
                     if (progressLine) {
                         progressLine.style.height = (progressPercent * totalHeight) + "px";
                     }
 
-                    // Pohyb autobusu
+                    // Pohyb autobusu - presne stredom
                     if (teraz <= koniecD) {
                         if(busIcon) {
                             busIcon.style.display = "block";
+                            // 22px je stred prvej guličky
                             busIcon.style.top = (22 + (progressPercent * totalHeight)) + "px";
                         }
                     } else {
-                        if (busIcon) busIcon.style.display = "none";
+                        if (busIcon) {
+                            busIcon.style.display = "block";
+                            busIcon.style.top = (22 + totalHeight) + "px";
+                        }
                     }
 
                     // Zafarbenie guličiek
                     spoj.min.forEach((minOffset, i) => {
                         const dot = document.getElementById(`dot-${spoj.id}-${i}`);
-                        if (dot && ubehloMin >= minOffset) dot.classList.add('reached');
+                        if (dot && ubehloSekundy >= (minOffset * 60)) dot.classList.add('reached');
                         else if (dot) dot.classList.remove('reached');
                     });
                 } else {
@@ -273,6 +276,7 @@
             });
         }
 
+        // --- ZVYŠOK FUNKCIÍ ZOSTÁVA BEZ ZMENY ---
         function updateLiveStatus() {
             const id = document.getElementById('statusLineSelect').value;
             const val = document.getElementById('statusValueSelect').value;
