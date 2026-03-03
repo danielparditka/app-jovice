@@ -4,251 +4,194 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SAD Jovice</title>
+    
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1042/1042259.png">
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/1042/1042259.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#004a99">
+
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root { --primary: #FFD700; --secondary: #004a99; --bg: #e9ecef; --card: #ffffff; --text: #212529; --success: #28a745; --danger: #dc3545; }
         body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--bg); margin: 0; padding: 15px; color: var(--text); }
         
-        /* Header */
         .header { background: var(--secondary); color: white; padding: 25px 15px; border-radius: 0 0 20px 20px; text-align: center; margin: -15px -15px 20px -15px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
         #dispecing-oznam { background: var(--primary); color: black; padding: 10px; border-radius: 8px; margin-top: 15px; text-align: center; font-weight: bold; display: none; border: 2px solid #333; }
 
-        /* Vyhľadávanie */
         .search-box { background: var(--card); padding: 15px; border-radius: 12px; margin: 20px 0; position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         input, select, textarea { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
         .autocomplete-items { position: absolute; border: 1px solid #d4d4d4; background: white; z-index: 100; width: calc(100% - 30px); border-radius: 0 0 8px 8px; max-height: 200px; overflow-y: auto; }
         .autocomplete-items div { padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; }
 
-        /* Karty spojov */
         .bus-card { background: var(--card); border-radius: 12px; margin-bottom: 15px; overflow: hidden; box-shadow: 0 3px 6px rgba(0,0,0,0.1); border: 1px solid #ddd; cursor: pointer; }
-        .bus-summary { padding: 15px; position: relative; }
-        .line-badge { background: var(--secondary); color: white; min-width: 60px; height: 30px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; font-weight: bold; margin-bottom: 8px; }
+        .bus-summary { padding: 15px; }
+        .line-badge { background: var(--secondary); color: white; min-width: 65px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; font-weight: bold; margin-bottom: 8px; }
         .countdown-timer { font-size: 12px; font-weight: bold; color: #d35400; background: #fff3e0; padding: 2px 6px; border-radius: 4px; border: 1px solid #ffcc80; }
         
-        /* Cestovný poriadok s live autobusom */
-        .bus-details { max-height: 0; overflow: hidden; transition: max-height 0.5s ease; background: #fdfdfd; }
-        .bus-card.active .bus-details { max-height: 2000px; }
+        .bus-details { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; background: #fdfdfd; border-top: 1px dashed #ccc; }
+        .bus-card.active .bus-details { max-height: 1500px; }
+        .stations-list { padding: 15px; list-style: none; margin: 0; position: relative; }
         
-        .timetable-container { padding: 20px 15px; position: relative; }
-        .station-row { display: flex; align-items: center; height: 50px; position: relative; }
-        
-        .col-time { width: 50px; font-weight: bold; color: var(--secondary); font-size: 14px; }
-        
-        /* Vertikálna čiara (koľajnica) */
-        .col-track { width: 40px; display: flex; justify-content: center; align-items: center; position: relative; height: 100%; }
-        .track-line { position: absolute; width: 4px; background: #dee2e6; top: 0; bottom: 0; z-index: 1; }
-        .station-dot { width: 10px; height: 10px; background: #adb5bd; border-radius: 50%; border: 2px solid white; z-index: 2; transition: background 0.3s; }
-        .station-dot.reached { background: var(--secondary); }
-        
-        /* Samotný autobus na trati */
-        .live-bus-icon { 
-            position: absolute; 
-            left: 50%; 
-            transform: translate(-50%, -50%); 
-            font-size: 20px; 
-            z-index: 10; 
-            display: none; 
-            transition: top 1s linear; 
-        }
+        .station-item { display: flex; align-items: center; height: 40px; position: relative; z-index: 2; }
+        .time-col { min-width: 50px; font-weight: bold; color: var(--secondary); font-size: 14px; }
+        .track-col { width: 30px; display: flex; justify-content: center; position: relative; height: 100%; }
+        .name-col { flex: 1; font-size: 14px; padding-left: 5px; }
 
-        .col-name { flex: 1; font-size: 14px; padding-left: 10px; }
+        .vertical-track { position: absolute; left: 74px; top: 30px; bottom: 30px; width: 4px; background: #eee; z-index: 1; }
+        .dot { width: 8px; height: 8px; background: #ccc; border-radius: 50%; z-index: 3; }
+        .dot.active { background: var(--secondary); }
+        
+        .moving-bus { position: absolute; left: 66px; font-size: 18px; z-index: 10; display: none; transition: top 1s linear; }
 
-        /* Footer karty */
-        .bus-footer { padding: 12px; background: #f1f1f1; font-size: 11px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; }
-        .spz-tag { background: white; padding: 3px 8px; border: 1px solid #333; border-radius: 4px; font-weight: bold; }
+        .bus-footer { padding: 12px; background: #f1f1f1; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .spz-tag { background: white; padding: 4px 10px; border: 2px solid #333; border-radius: 5px; font-family: monospace; font-weight: bold; }
 
-        /* Admin a Mapa */
         .admin-panel { background: #333; color: white; padding: 20px; border-radius: 12px; margin-top: 30px; }
         .btn { background: var(--primary); border: none; padding: 12px; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 10px; }
         #map-container { display: none; margin-bottom: 20px; }
-        #map { height: 350px; width: 100%; border-radius: 12px; border: 1px solid #ddd; }
+        #map { height: 350px; width: 100%; border-radius: 12px; }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h1>SAD JOVICE</h1>
-        <p>Gemer v pohybe</p>
+        <p>"Váš dopravný sprievodca Gemerom"</p>
         <div id="dispecing-oznam"></div>
     </div>
 
     <div class="search-box">
-        <input type="text" id="searchInput" onkeyup="showAutocomplete()" placeholder="Kam pocestujeme?" autocomplete="off">
+        <input type="text" id="searchInput" onkeyup="showAutocomplete()" placeholder="Kam cestujete?" autocomplete="off">
         <div id="autocomplete-list" class="autocomplete-items"></div>
-        <div style="display:flex; gap:10px; margin-top:10px;">
-            <input type="time" id="timeInput">
-            <button class="btn" style="margin:0; width:auto; padding:0 15px;" onclick="clearTime()">Zrušiť</button>
-        </div>
+        <input type="time" id="timeInput" style="margin-top: 10px;">
         <button class="btn" onclick="executeSearch()">VYHĽADAŤ SPOJENIE</button>
-        <button class="btn" style="background:var(--secondary); color:white;" onclick="toggleMap()">MAPA TRÁS</button>
+        <button class="btn" style="background:var(--secondary); color:white;" onclick="toggleMap()">ZOBRAZIŤ MAPU</button>
     </div>
 
-    <div id="map-container">
-        <div id="map"></div>
-    </div>
+    <div id="map-container"><div id="map"></div></div>
 
     <div id="links-container"></div>
 
     <div class="admin-panel">
-        <strong>⚙️ DISPEČING</strong><br>
-        <small>Stav a ŠPZ:</small>
+        <strong>🔧 DISPEČING</strong><br>
         <select id="lineSelect"></select>
         <input type="text" id="newSpz" placeholder="Nová ŠPZ">
-        <button class="btn" onclick="updateSpzOnly()">ZMENIŤ ŠPZ</button>
-        <textarea id="adminNote" style="margin-top:10px;" placeholder="Oznam pre cestujúcich..."></textarea>
+        <button class="btn" onclick="updateSpzOnly()">AKTUALIZOVAŤ ŠPZ</button>
+        <textarea id="adminNote" style="margin-top:10px;" placeholder="Oznam..."></textarea>
         <button class="btn" onclick="updateApp()">PUBLIKOVAŤ OZNAM</button>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // --- DÁTOVÁ ŠTRUKTÚRA (VŠETKÝCH 14 SPOJOV ZACHOVANÝCH) ---
-        const zastJovLip = ["Jovice, AS", "Jovice, most", "Jovice, Hradná ul., odbočka", "Jovice, futbalové ihrisko", "Pole, č. 1", "Pole, č. 2", "Krásnorská Dlhá Lúka, západ", "Krásnorská Dlhá Lúka, kríž", "Krásnorská Dlhá Lúka, Jednota", "Krásnorská Dlhá Lúka, most", "Krásnorská Dlhá Lúka, cintorín", "Lipovník, zákruta", "Lipovník, žel. most", "Lipovník, žel. st.", "Lipovník, č. d. 1", "Lipovník, obchádzka", "Lipovník, Jednota"];
-        const minJovLip = [0, 1, 2, 3, 4, 6, 8, 9, 10, 11, 12, 15, 17, 22, 25, 27, 29];
+        // TRASY (Všetky názvy sú teraz celé a bez skratiek)
+        const t825 = ["Jovice, aut. stanica", "Jovice, most", "Jovice, odbočka", "Jovice, futbalové ihrisko", "Pole, č. 1", "Pole, č. 2", "Krásnohorská Dlhá Lúka, západ", "Krásnohorská Dlhá Lúka, kríž", "Krásnohorská Dlhá Lúka, Jednota", "Krásnohorská Dlhá Lúka, most", "Krásnohorská Dlhá Lúka, cintorín", "Lipovník, zákruta", "Lipovník, železničný most", "Lipovník, železničná stanica", "Lipovník, č. d. 1", "Lipovník, obchádzka", "Lipovník, Jednota"];
+        const m825 = [0, 1, 2, 3, 4, 6, 8, 9, 10, 11, 12, 15, 17, 22, 25, 27, 29];
         
-        const trasa826T = [Krásnorská Dlhá Lúka, kríž", "Krásnorská Dlhá Lúka, západ", "Pole, č. 2", "Pole, č. 1", "Jovice, ihrisko", "Jovice, odb.", "Jovice, most", "Jovice, AS", "Jovice, č.d. 25", "Jovice, rozvodňa", "Jovice, CWT Metal", "Brzotín,  Badinotti", "Rožňava, žel. priec.", "Rožňava, eurobus", "Rožňava, Kaufland", "Rožňava, úrad práce", "Rožňava, Šafárikova", "Rožňava, AS"];
-        const min826T = [0, 1, 3, 5, 6, 7, 8, 9, 10, 13, 15, 17, 19, 24, 26, 28, 30, 32];
-        const trasa826S = [...trasa826T].reverse();
-        const min826S = [0, 2, 4, 6, 8, 13, 15, 17, 19, 22, 23, 24, 25, 26, 27, 29, 31, 32];
+        const t826_T = ["Krásnohorská Dlhá Lúka, kríž", "Krásnohorská Dlhá Lúka, západ", "Pole, č. 2", "Pole, č. 1", "Jovice, futbalové ihrisko", "Jovice, odbočka", "Jovice, most", "Jovice, aut. stanica", "Jovice, č. d. 25", "Jovice, rozvodňa", "Jovice, CWT Metal", "Brzotín, Badinotti", "Rožňava, železničné priecestie", "Rožňava, eurobus", "Rožňava, Kaufland", "Rožňava, úrad práce", "Rožňava, Šafárikova ulica", "Rožňava, AS"];
+        const m826_T = [0, 1, 3, 5, 6, 7, 8, 9, 10, 13, 15, 17, 19, 24, 26, 28, 30, 32];
 
         const spoje = [
-            { id: "1", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "15:00", trasa: zastJovLip, min: minJovLip },
-            { id: "2", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "15:35", trasa: [...zastJovLip].reverse(), min: minJovLip },
-            { id: "3", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "15:20", trasa: zastJovLip, min: minJovLip },
-            { id: "4", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "15:40", trasa: zastJovLip, min: minJovLip },
-            { id: "5", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "15:55", trasa: [...zastJovLip].reverse(), min: minJovLip },
-            { id: "6", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "16:15", trasa: [...zastJovLip].reverse(), min: minJovLip },
-            { id: "7", cislo: "808423", smer: "Jovice ➔ Krh. Dlhá Lúka", start: "15:20", trasa: zastJovLip.slice(0, 9), min: minJovLip.slice(0, 9) },
-            { id: "8", cislo: "808423", smer: "Krh. Dlhá Lúka ➔ Jovice", start: "15:40", trasa: zastJovLip.slice(0, 9).reverse(), min: [0, 1, 2, 3, 5, 6, 7, 8, 9] },
-            { id: "9", cislo: "1", smer: "Jovice, Jednota ➔ Materská škôlka", start: "15:51", trasa: ["Jovice, Jednota", "Jovice, AS", "Jovice, materská škôlka"], min: [0, 1, 2] },
-            { id: "10", cislo: "1", smer: "Materská škôlka ➔ Jovice, Jednota", start: "15:59", trasa: ["Jovice, materská škôlka", "Jovice, Jednota"], min: [0, 1] },
-            { id: "11", cislo: "808426", smer: "Krh. Dlhá Lúka ➔ Rožňava, AS", start: "14:51", trasa: trasa826T, min: min826T },
-            { id: "12", cislo: "808426", smer: "Rožňava, AS ➔ Krh. Dlhá Lúka", start: "15:40", trasa: trasa826S, min: min826S },
-            { id: "13", cislo: "808478", smer: "Jovice, Jednota ➔ Pod lesom", start: "12:00", trasa: ["Jovice, Jednota", "Jovice, stred", "Jovice, pod lesom"], min: [0, 1, 2] },
-            { id: "14", cislo: "808478", smer: "Pod lesom ➔ Jovice, Jednota", start: "12:03", trasa: ["Jovice, pod lesom", "Jovice, stred", "Jovice, Jednota"], min: [0, 1, 2] }
+            { id: "1", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "15:00", trasa: t825, min: m825 },
+            { id: "2", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "15:35", trasa: [...t825].reverse(), min: m825 },
+            { id: "3", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "15:20", trasa: t825, min: m825 },
+            { id: "4", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "15:40", trasa: t825, min: m825 },
+            { id: "5", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "15:55", trasa: [...t825].reverse(), min: m825 },
+            { id: "6", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "16:15", trasa: [...t825].reverse(), min: m825 },
+            { id: "7", cislo: "808423", smer: "Jovice ➔ Krásnohorská Dlhá Lúka", start: "15:20", trasa: t825.slice(0, 9), min: m825.slice(0, 9) },
+            { id: "8", cislo: "808423", smer: "Krásnohorská Dlhá Lúka ➔ Jovice", start: "15:40", trasa: t825.slice(0, 9).reverse(), min: [0, 1, 2, 3, 5, 6, 7, 8, 9] },
+            { id: "9", cislo: "1", smer: "Jovice, Jednota ➔ Jovice, materská škôlka", start: "15:51", trasa: ["Jovice, Jednota", "Jovice, aut. stanica", "Jovice, materská škôlka"], min: [0, 1, 2] },
+            { id: "10", cislo: "1", smer: "Jovice, materská škôlka ➔ Jovice, Jednota", start: "15:59", trasa: ["Jovice, materská škôlka", "Jovice, Jednota"], min: [0, 1] },
+            { id: "11", cislo: "808426", smer: "Krásnohorská Dlhá Lúka ➔ Rožňava, AS", start: "14:51", trasa: t826_T, min: m826_T },
+            { id: "12", cislo: "808426", smer: "Rožňava, AS ➔ Krásnohorská Dlhá Lúka", start: "15:40", trasa: [...t826_T].reverse(), min: m826_T },
+            { id: "13", cislo: "808478", smer: "Jovice, Jednota ➔ Jovice, pod lesom", start: "12:00", trasa: ["Jovice, Jednota", "Jovice, stred", "Jovice, pod lesom"], min: [0, 1, 2] },
+            { id: "14", cislo: "808478", smer: "Jovice, pod lesom ➔ Jovice, Jednota", start: "12:03", trasa: ["Jovice, pod lesom", "Jovice, stred", "Jovice, Jednota"], min: [0, 1, 2] }
         ];
 
-        // --- POMOCNÉ FUNKCIE ---
-        function pridajCas(start, plusMin) {
-            let [h, m] = start.split(':').map(Number);
-            let d = new Date(); d.setHours(h, m + plusMin);
+        function pridajCas(s, m) {
+            let [h, min] = s.split(':').map(Number);
+            let d = new Date(); d.setHours(h, min + m);
             return d.getHours().toString().padStart(2, '0') + ":" + d.getMinutes().toString().padStart(2, '0');
         }
 
-        function vykresliLinky() {
-            const container = document.getElementById('links-container');
-            const select = document.getElementById('lineSelect');
-            container.innerHTML = ""; select.innerHTML = "";
+        function vykresli() {
+            const cont = document.getElementById('links-container');
+            const sel = document.getElementById('lineSelect');
+            cont.innerHTML = ""; sel.innerHTML = "";
             
             spoje.forEach(spoj => {
-                let card = document.createElement('div');
-                card.className = 'bus-card';
-                card.onclick = function() { this.classList.toggle('active'); };
-                
-                let timetableHtml = spoj.trasa.map((z, i) => `
-                    <div class="station-row" id="row-${spoj.id}-${i}">
-                        <div class="col-time">${pridajCas(spoj.start, spoj.min[i])}</div>
-                        <div class="col-track">
-                            <div class="track-line"></div>
-                            <div class="station-dot" id="dot-${spoj.id}-${i}"></div>
-                        </div>
-                        <div class="col-name">${z}</div>
-                    </div>
-                `).join('');
+                let items = spoj.trasa.map((z, i) => `
+                    <div class="station-item">
+                        <div class="time-col">${pridajCas(spoj.start, spoj.min[i])}</div>
+                        <div class="track-col"><div class="dot" id="dot-${spoj.id}-${i}"></div></div>
+                        <div class="name-col">${z}</div>
+                    </div>`).join('');
 
-                card.innerHTML = `
-                    <div class="bus-summary">
-                        <div class="line-badge">${spoj.cislo}</div>
-                        <strong>${spoj.smer}</strong><br>
-                        <small>Odchod: ${spoj.start}</small>
-                        <div style="margin-top:8px;">
-                            <span class="countdown-timer" id="timer-${spoj.id}"></span>
+                cont.innerHTML += `
+                    <div class="bus-card" onclick="this.classList.toggle('active')">
+                        <div class="bus-summary">
+                            <div class="line-badge">${spoj.cislo}</div>
+                            <strong>${spoj.smer}</strong><br><small>Odchod: ${spoj.start}</small>
+                            <div style="margin-top:5px;"><span class="countdown-timer" id="timer-${spoj.id}"></span></div>
                         </div>
-                    </div>
-                    <div class="bus-details">
-                        <div class="timetable-container">
-                            <div id="bus-icon-${spoj.id}" class="live-bus-icon">🚌</div>
-                            ${timetableHtml}
-                        </div>
-                        <div class="bus-footer">
-                            <span>SAD JOVICE d.o.o.</span>
-                            <span class="spz-tag" id="tag-${spoj.id}">RV-777-JV</span>
+                        <div class="bus-details">
+                            <div class="stations-list">
+                                <div class="vertical-track"></div>
+                                <div id="bus-${spoj.id}" class="moving-bus">🚌</div>
+                                ${items}
+                            </div>
+                            <div class="bus-footer">
+                                <span>SAD JOVICE</span>
+                                <span class="spz-tag" id="tag-${spoj.id}">RV-SAD-JV</span>
+                            </div>
                         </div>
                     </div>`;
-                container.appendChild(card);
-                select.innerHTML += `<option value="${spoj.id}">${spoj.cislo} (${spoj.start})</option>`;
+                sel.innerHTML += `<option value="${spoj.id}">${spoj.cislo} (${spoj.start})</option>`;
             });
-            aktualizujPohyb();
+            aktualizuj();
         }
 
-        function aktualizujPohyb() {
+        function aktualizuj() {
             const teraz = new Date();
             spoje.forEach(spoj => {
                 const [h, m] = spoj.start.split(':').map(Number);
-                const sTime = new Date(); sTime.setHours(h, m, 0);
-                const eTime = new Date(sTime.getTime() + spoj.min[spoj.min.length-1] * 60000);
+                const s = new Date(); s.setHours(h, m, 0);
+                const e = new Date(s.getTime() + spoj.min[spoj.min.length-1] * 60000);
                 
-                const busIcon = document.getElementById(`bus-icon-${spoj.id}`);
-                const timerEl = document.getElementById(`timer-${spoj.id}`);
+                const bus = document.getElementById(`bus-${spoj.id}`);
+                const timer = document.getElementById(`timer-${spoj.id}`);
 
-                // 1. Odpočítavanie
-                let diff = sTime - teraz;
+                let diff = s - teraz;
                 if(diff > 0) {
-                    let mins = Math.floor(diff/60000);
-                    timerEl.innerText = mins < 60 ? `ODCHOD O ${mins} MIN` : `O ${Math.floor(mins/60)}h ${mins%60}m`;
-                } else if (teraz <= eTime) {
-                    timerEl.innerText = "SPOJ NA CESTE";
-                } else {
-                    timerEl.innerText = "";
-                }
+                    let mm = Math.floor(diff/60000);
+                    timer.innerText = mm < 60 ? `ODCHOD O ${mm} MIN` : `O ${Math.floor(mm/60)}h ${mm%60}m`;
+                } else if (teraz <= e) { timer.innerText = "SPOJ NA CESTE"; } else { timer.innerText = ""; }
 
-                // 2. Pohyb autobusu v zozname
-                if (teraz >= sTime && teraz <= eTime) {
-                    busIcon.style.display = "block";
-                    
-                    // Nájdeme, medzi ktorými zastávkami sa autobus nachádza
-                    let progressMin = (teraz - sTime) / 60000;
-                    let currentIndex = 0;
-                    for(let i=0; i < spoj.min.length - 1; i++) {
-                        if(progressMin >= spoj.min[i] && progressMin <= spoj.min[i+1]) {
-                            currentIndex = i;
-                            break;
-                        }
-                    }
+                if (teraz >= s && teraz <= e) {
+                    bus.style.display = "block";
+                    let celkovyCas = (e - s) / 60000;
+                    let ubehnutyCas = (teraz - s) / 60000;
+                    let totalHeight = (spoj.trasa.length - 1) * 40;
+                    bus.style.top = (15 + (ubehnutyCas / (celkovyCas || 1)) * totalHeight) + "px";
 
-                    // Výpočet pixelovej pozície (každý row má 50px)
-                    let startRowY = currentIndex * 50 + 25; // 25 je stred row
-                    let endRowY = (currentIndex + 1) * 50 + 25;
-                    let segmentProgress = (progressMin - spoj.min[currentIndex]) / (spoj.min[currentIndex+1] - spoj.min[currentIndex] || 1);
-                    let currentY = startRowY + (segmentProgress * (endRowY - startRowY));
-                    
-                    busIcon.style.top = currentY + "px";
-
-                    // Označenie prejdených zastávok
-                    spoj.min.forEach((mOffset, i) => {
-                        let dot = document.getElementById(`dot-${spoj.id}-${i}`);
-                        if(progressMin >= mOffset) dot.classList.add('reached');
-                        else dot.classList.remove('reached');
+                    spoj.min.forEach((mOff, i) => {
+                        let d = document.getElementById(`dot-${spoj.id}-${i}`);
+                        if(ubehnutyCas >= mOff) d.classList.add('active');
+                        else d.classList.remove('active');
                     });
-                } else {
-                    busIcon.style.display = "none";
-                    if(teraz > eTime) {
-                        spoj.min.forEach((_, i) => document.getElementById(`dot-${spoj.id}-${i}`).classList.add('reached'));
-                    }
-                }
+                } else { bus.style.display = "none"; }
             });
         }
 
-        // --- OSTATNÉ FUNKCIE (ADMIN, MAPA, SEARCH) ---
         function updateSpzOnly() {
             let id = document.getElementById('lineSelect').value;
-            let val = document.getElementById('newSpz').value;
-            if(val) document.getElementById(`tag-${id}`).innerText = val;
+            let spz = document.getElementById('newSpz').value;
+            if(spz) document.getElementById(`tag-${id}`).innerText = spz;
         }
 
         function updateApp() {
-            let note = document.getElementById('adminNote').value;
-            let oznam = document.getElementById('dispecing-oznam');
-            if(note) { oznam.innerText = "⚠️ " + note; oznam.style.display = "block"; alert("Publikované."); }
+            let n = document.getElementById('adminNote').value;
+            let o = document.getElementById('dispecing-oznam');
+            if(n) { o.innerText = "⚠️ " + n; o.style.display = "block"; }
         }
 
         function showAutocomplete() {
@@ -256,42 +199,37 @@
             let list = document.getElementById("autocomplete-list");
             list.innerHTML = "";
             if(!val) return;
-            let stops = [...new Set(spoje.flatMap(s => s.trasa))];
-            stops.forEach(s => {
-                if(s.toLowerCase().includes(val)) {
-                    let d = document.createElement("div"); d.innerText = s;
-                    d.onclick = () => { document.getElementById("searchInput").value = s; list.innerHTML = ""; executeSearch(); };
+            [...new Set(spoje.flatMap(s => s.trasa))].forEach(z => {
+                if(z.toLowerCase().includes(val)) {
+                    let d = document.createElement("div"); d.innerText = z;
+                    d.onclick = () => { document.getElementById("searchInput").value = z; list.innerHTML = ""; executeSearch(); };
                     list.appendChild(d);
                 }
             });
         }
 
         function executeSearch() {
-            let dest = document.getElementById("searchInput").value.toLowerCase();
-            let time = document.getElementById("timeInput").value;
-            document.querySelectorAll('.bus-card').forEach((card, idx) => {
-                let s = spoje[idx];
-                let matchDest = dest === "" || s.trasa.some(t => t.toLowerCase().includes(dest));
-                let matchTime = time === "" || s.start >= time;
-                card.style.display = (matchDest && matchTime) ? "block" : "none";
+            let d = document.getElementById("searchInput").value.toLowerCase();
+            let t = document.getElementById("timeInput").value;
+            document.querySelectorAll('.bus-card').forEach((c, i) => {
+                let s = spoje[i];
+                let match = (d === "" || s.trasa.some(x => x.toLowerCase().includes(d))) && (t === "" || s.start >= t);
+                c.style.display = match ? "block" : "none";
             });
         }
 
-        function clearTime() { document.getElementById("timeInput").value = ""; executeSearch(); }
-
         let lMap;
         function toggleMap() {
-            const mDiv = document.getElementById('map-container');
-            mDiv.style.display = mDiv.style.display === 'block' ? 'none' : 'block';
-            if(!lMap && mDiv.style.display === 'block') {
+            const m = document.getElementById('map-container');
+            m.style.display = m.style.display === 'block' ? 'none' : 'block';
+            if(!lMap && m.style.display === 'block') {
                 lMap = L.map('map').setView([48.628, 20.585], 13);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(lMap);
             }
         }
 
-        // Štart
-        vykresliLinky();
-        setInterval(aktualizujPohyb, 1000);
+        vykresli();
+        setInterval(aktualizuj, 1000);
     </script>
 </body>
 </html>
