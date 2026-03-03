@@ -216,10 +216,10 @@
                 let opt = `<option value="${spoj.id}">${spoj.cislo} (${spoj.start})</option>`;
                 select.innerHTML += opt; statusSelect.innerHTML += opt;
             });
-            setInterval(aktualizujLivePohyb, 500); // Rýchlejší refresh pre plynulosť
+            setInterval(aktualizujLivePohyb, 500);
         }
 
-function aktualizujLivePohyb() {
+        function aktualizujLivePohyb() {
             const teraz = new Date();
             spoje.forEach(spoj => {
                 const elTimer = document.getElementById('countdown-' + spoj.id);
@@ -239,10 +239,9 @@ function aktualizujLivePohyb() {
                     let ubehloSekundy = (teraz - startD) / 1000;
                     let ubehloMinuty = ubehloSekundy / 60;
                     
-                    let itemHeight = 45; // Výška medzi stredmi zastávok
+                    let itemHeight = 45;
                     let aktualnyIndex = 0;
                     
-                    // Nájdeme, medzi ktorými zastávkami sa autobus práve nachádza
                     for (let i = 0; i < spoj.min.length - 1; i++) {
                         if (ubehloMinuty >= spoj.min[i] && ubehloMinuty < spoj.min[i+1]) {
                             aktualnyIndex = i;
@@ -256,25 +255,20 @@ function aktualizujLivePohyb() {
                     let finalnaPozicia = 0;
 
                     if (aktualnyIndex < spoj.min.length - 1) {
-                        // Vypočítame presnú polohu medzi dvoma konkrétnymi zastávkami
                         let casOdZastavky = ubehloMinuty - spoj.min[aktualnyIndex];
                         let trvanieMedziuseku = spoj.min[aktualnyIndex+1] - spoj.min[aktualnyIndex];
                         let percentoMedziuseku = casOdZastavky / trvanieMedziuseku;
-                        
                         finalnaPozicia = (aktualnyIndex * itemHeight) + (percentoMedziuseku * itemHeight);
                     } else {
-                        // Autobus je v cieli
                         finalnaPozicia = (spoj.trasa.length - 1) * itemHeight;
                     }
 
-                    // Aplikujeme pohyb (22.5 je vycentrovanie na prvú guličku)
                     if (progressLine) progressLine.style.height = finalnaPozicia + "px";
                     if (busIcon) {
                         busIcon.style.display = "block";
                         busIcon.style.top = (22.5 + finalnaPozicia) + "px";
                     }
 
-                    // Rozsvietenie guličiek
                     spoj.min.forEach((minOffset, i) => {
                         const dot = document.getElementById(`dot-${spoj.id}-${i}`);
                         if (dot && ubehloMinuty >= minOffset) {
@@ -356,8 +350,24 @@ function aktualizujLivePohyb() {
             const mapDiv = document.getElementById('map-container');
             mapDiv.style.display = mapDiv.style.display === 'block' ? 'none' : 'block';
             if (!leafletMap && mapDiv.style.display === 'block') {
-                leafletMap = L.map('map').setView([48.628, 20.585], 13);
+                leafletMap = L.map('map').setView([48.635, 20.570], 13);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(leafletMap);
+
+                // --- PRIDANÉ TRASY NA MAPU ---
+                const coords = {
+                    "Jovice": [48.636, 20.559],
+                    "Dlhá Lúka": [48.618, 20.584],
+                    "Lipovník": [48.625, 20.622],
+                    "Rožňava": [48.659, 20.533]
+                };
+                const trasyMapy = [
+                    { pts: [coords["Jovice"], coords["Dlhá Lúka"], coords["Lipovník"]], color: '#004a99' },
+                    { pts: [coords["Dlhá Lúka"], coords["Jovice"], coords["Rožňava"]], color: '#e67e22' }
+                ];
+                trasyMapy.forEach(r => {
+                    L.polyline(r.pts, {color: r.color, weight: 5, opacity: 0.7}).addTo(leafletMap);
+                });
+                // --- KONIEC PRIDANÝCH TRÁS ---
             }
         }
 
