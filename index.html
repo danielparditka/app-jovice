@@ -33,21 +33,30 @@
         .bus-details { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; background: #fdfdfd; border-top: 1px dashed #ccc; }
         .bus-card.active .bus-details { max-height: 1500px; }
         
+        /* --- PRECOZNÁ ÚPRAVA SLEDOVANIA TRASY --- */
         .stations-list { padding: 20px 15px; list-style: none; margin: 0; position: relative; }
         .station-item { display: flex; align-items: center; gap: 0; height: 45px; position: relative; font-size: 14px; z-index: 2; }
         .time { font-weight: bold; color: var(--secondary); min-width: 50px; text-align: left; }
         
         .track-col { width: 40px; display: flex; justify-content: center; align-items: center; position: relative; height: 100%; }
-        .track-line { position: absolute; width: 2px; background: #ddd; top: 0; bottom: 0; z-index: 1; }
-        .station-item:first-child .track-line { top: 50%; }
-        .station-item:last-child .track-line { bottom: 50%; }
+        
+        /* Základná sivá čiara */
+        .track-line-bg { position: absolute; width: 4px; background: #ddd; top: 0; bottom: 0; z-index: 1; border-radius: 2px; }
+        .station-item:first-child .track-line-bg { top: 50%; }
+        .station-item:last-child .track-line-bg { bottom: 50%; }
+
+        /* Modrá stopa za autobusom */
+        .track-line-progress { position: absolute; width: 4px; background: var(--secondary); top: 50%; height: 0%; z-index: 2; border-radius: 2px; transition: height 0.5s linear; }
         
         .dot { width: 10px; height: 10px; background: #ccc; border-radius: 50%; border: 2px solid white; z-index: 3; transition: background 0.3s; }
         .dot.reached { background: var(--secondary); }
         
-        .live-bus-icon { position: absolute; left: 50%; transform: translate(-50%, -50%); font-size: 18px; z-index: 10; display: none; pointer-events: none; }
-        .station-name { flex: 1; padding-left: 5px; }
+        /* Ikonka autobusu - presne na stred čiary */
+        .live-bus-icon { position: absolute; left: 74px; /* Pozícia presne nad track-col */ transform: translate(-50%, -50%); font-size: 18px; z-index: 10; display: none; pointer-events: none; }
         
+        .station-name { flex: 1; padding-left: 10px; }
+        /* --------------------------------------- */
+
         .bus-footer { padding: 12px; background: #f1f1f1; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
         .spz-tag { background: white; padding: 4px 10px; border: 2px solid #333; border-radius: 5px; font-family: monospace; font-weight: bold; }
         
@@ -170,7 +179,8 @@
                     <div class="station-item">
                         <span class="time">${pridajCas(spoj.start, spoj.min[i])}</span>
                         <div class="track-col">
-                            <div class="track-line"></div>
+                            <div class="track-line-bg"></div>
+                            ${i === 0 ? `<div id="progress-${spoj.id}" class="track-line-progress"></div>` : ''}
                             <div class="dot" id="dot-${spoj.id}-${i}"></div>
                         </div>
                         <span class="station-name">${z}</span>
@@ -224,16 +234,33 @@
 
                 const [h, m] = spoj.start.split(':').map(Number);
                 const startD = new Date(); startD.setHours(h, m, 0);
-                const koniecD = new Date(startD.getTime() + spoj.min[spoj.min.length-1] * 60000);
+                const konecMin = spoj.min[spoj.min.length-1];
+                const koniecD = new Date(startD.getTime() + konecMin * 60000);
+                
                 const busIcon = document.getElementById(`live-bus-${spoj.id}`);
+                const progressLine = document.getElementById(`progress-${spoj.id}`);
 
-                if (teraz >= startD && teraz <= koniecD) {
-                    if(busIcon) busIcon.style.display = "block";
+                if (teraz >= startD) {
                     let ubehloMin = (teraz - startD) / 60000;
                     let totalHeight = (spoj.trasa.length - 1) * 45;
-                    let progress = ubehloMin / (spoj.min[spoj.min.length-1] || 1);
-                    if(busIcon) busIcon.style.top = (20 + (progress * totalHeight)) + "px";
+                    let progressPercent = Math.min(ubehloMin / (konecMin || 1), 1);
+                    
+                    // Aktualizácia modrej stopy
+                    if (progressLine) {
+                        progressLine.style.height = (progressPercent * totalHeight) + "px";
+                    }
 
+                    // Pohyb autobusu
+                    if (teraz <= koniecD) {
+                        if(busIcon) {
+                            busIcon.style.display = "block";
+                            busIcon.style.top = (22 + (progressPercent * totalHeight)) + "px";
+                        }
+                    } else {
+                        if (busIcon) busIcon.style.display = "none";
+                    }
+
+                    // Zafarbenie guličiek
                     spoj.min.forEach((minOffset, i) => {
                         const dot = document.getElementById(`dot-${spoj.id}-${i}`);
                         if (dot && ubehloMin >= minOffset) dot.classList.add('reached');
@@ -241,6 +268,7 @@
                     });
                 } else {
                     if (busIcon) busIcon.style.display = "none";
+                    if (progressLine) progressLine.style.height = "0px";
                 }
             });
         }
@@ -306,10 +334,7 @@
             });
         }
 
-        // OPRAVA: Tlačidlo len vymaže text, ale nespustí vyhľadávanie
-        function clearTime() { 
-            document.getElementById("timeInput").value = ""; 
-        }
+        function clearTime() { document.getElementById("timeInput").value = ""; }
 
         let leafletMap;
         function toggleMap() {
@@ -322,8 +347,6 @@
                 L.marker(p_jovice).addTo(leafletMap).bindPopup("Jovice");
                 L.marker(p_luka).addTo(leafletMap).bindPopup("Krásnohorská Dlhá Lúka");
                 L.marker(p_lipovnik).addTo(leafletMap).bindPopup("Lipovník");
-                
-                // VRÁTENÉ FAREBNÉ ČIARY TRÁS
                 L.polyline([p_jovice, p_luka], {color: 'red', weight: 5, opacity: 0.7}).addTo(leafletMap);
                 L.polyline([p_luka, p_lipovnik], {color: 'blue', weight: 5, opacity: 0.7}).addTo(leafletMap);
             }
