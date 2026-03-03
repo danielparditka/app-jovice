@@ -219,7 +219,7 @@
             setInterval(aktualizujLivePohyb, 500); // Rýchlejší refresh pre plynulosť
         }
 
-        function aktualizujLivePohyb() {
+function aktualizujLivePohyb() {
             const teraz = new Date();
             spoje.forEach(spoj => {
                 const elTimer = document.getElementById('countdown-' + spoj.id);
@@ -231,38 +231,53 @@
 
                 const [h, m] = spoj.start.split(':').map(Number);
                 const startD = new Date(); startD.setHours(h, m, 0, 0);
-                const koniecMin = spoj.min[spoj.min.length-1];
-                const koniecD = new Date(startD.getTime() + koniecMin * 60000);
                 
                 const busIcon = document.getElementById(`live-bus-${spoj.id}`);
                 const progressLine = document.getElementById(`progress-${spoj.id}`);
 
                 if (teraz >= startD) {
-                    // Prepočet v sekundách pre maximálnu presnosť polohy
                     let ubehloSekundy = (teraz - startD) / 1000;
-                    let celkovoSekundy = koniecMin * 60;
-                    let progressPercent = Math.min(ubehloSekundy / (celkovoSekundy || 1), 1);
+                    let ubehloMinuty = ubehloSekundy / 60;
                     
-                    let itemHeight = 45;
-                    let totalHeight = (spoj.trasa.length - 1) * itemHeight;
-
-                    // Okamžitá aktualizácia výšky modrej čiary
-                    if (progressLine) progressLine.style.height = (progressPercent * totalHeight) + "px";
-
-                    if (teraz <= koniecD) {
-                        if(busIcon) {
-                            busIcon.style.display = "block";
-                            busIcon.style.top = (22.5 + (progressPercent * totalHeight)) + "px";
+                    let itemHeight = 45; // Výška medzi stredmi zastávok
+                    let aktualnyIndex = 0;
+                    
+                    // Nájdeme, medzi ktorými zastávkami sa autobus práve nachádza
+                    for (let i = 0; i < spoj.min.length - 1; i++) {
+                        if (ubehloMinuty >= spoj.min[i] && ubehloMinuty < spoj.min[i+1]) {
+                            aktualnyIndex = i;
+                            break;
                         }
-                    } else if (busIcon) {
-                        busIcon.style.display = "block";
-                        busIcon.style.top = (22.5 + totalHeight) + "px";
+                        if (ubehloMinuty >= spoj.min[spoj.min.length - 1]) {
+                            aktualnyIndex = spoj.min.length - 1;
+                        }
                     }
 
-                    // Označenie guličiek (ak autobus už prešiel časom zastávky)
+                    let finalnaPozicia = 0;
+
+                    if (aktualnyIndex < spoj.min.length - 1) {
+                        // Vypočítame presnú polohu medzi dvoma konkrétnymi zastávkami
+                        let casOdZastavky = ubehloMinuty - spoj.min[aktualnyIndex];
+                        let trvanieMedziuseku = spoj.min[aktualnyIndex+1] - spoj.min[aktualnyIndex];
+                        let percentoMedziuseku = casOdZastavky / trvanieMedziuseku;
+                        
+                        finalnaPozicia = (aktualnyIndex * itemHeight) + (percentoMedziuseku * itemHeight);
+                    } else {
+                        // Autobus je v cieli
+                        finalnaPozicia = (spoj.trasa.length - 1) * itemHeight;
+                    }
+
+                    // Aplikujeme pohyb (22.5 je vycentrovanie na prvú guličku)
+                    if (progressLine) progressLine.style.height = finalnaPozicia + "px";
+                    if (busIcon) {
+                        busIcon.style.display = "block";
+                        busIcon.style.top = (22.5 + finalnaPozicia) + "px";
+                    }
+
+                    // Rozsvietenie guličiek
                     spoj.min.forEach((minOffset, i) => {
                         const dot = document.getElementById(`dot-${spoj.id}-${i}`);
-                        if (dot && ubehloSekundy >= (minOffset * 60)) {
+                        if (dot && ubehloMinuty >= minOffset) {
                             dot.classList.add('reached');
                         }
                     });
