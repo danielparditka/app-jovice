@@ -35,23 +35,23 @@
         
         .stations-list { padding: 20px 15px; list-style: none; margin: 0; position: relative; }
         .station-item { display: flex; align-items: center; gap: 0; height: 45px; position: relative; font-size: 14px; z-index: 2; }
-        .time { font-weight: bold; color: var(--secondary); min-width: 50px; text-align: left; }
+        .time { font-weight: bold; color: var(--secondary); min-width: 55px; text-align: left; z-index: 3; }
         
-        .track-col { width: 40px; display: flex; justify-content: center; align-items: center; position: relative; height: 100%; }
+        /* FIX: TRACK COLUMN S ABSOLÚTNYM CENTROVANÍM */
+        .track-col { width: 40px; display: flex; justify-content: center; align-items: center; position: relative; height: 100%; flex-shrink: 0; }
         
-        /* PORADIE VRSTIEV - OPRAVENÉ */
-        .track-line-bg { position: absolute; width: 4px; background: #ddd; top: 0; bottom: 0; z-index: 1; border-radius: 2px; }
+        .track-line-bg { position: absolute; width: 4px; background: #ddd; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); z-index: 1; border-radius: 2px; }
         .station-item:first-child .track-line-bg { top: 50%; }
         .station-item:last-child .track-line-bg { bottom: 50%; }
 
-        .track-line-progress { position: absolute; width: 4px; background: var(--secondary); top: 22px; height: 0; z-index: 5; border-radius: 2px; }
+        .track-line-progress { position: absolute; width: 4px; background: var(--secondary); top: 22.5px; left: 50%; transform: translateX(-50%); height: 0; z-index: 2; border-radius: 2px; }
         
-        .dot { width: 10px; height: 10px; background: #ccc; border-radius: 50%; border: 2px solid white; z-index: 6; transition: background 0.3s; }
+        .dot { width: 10px; height: 10px; background: #ccc; border-radius: 50%; border: 2px solid white; z-index: 3; transition: background 0.3s; position: relative; }
         .dot.reached { background: var(--secondary); }
         
-        .live-bus-icon { position: absolute; left: 50%; transform: translate(-50%, -50%); font-size: 18px; z-index: 10; display: none; pointer-events: none; }
+        .live-bus-icon { position: absolute; left: 50%; transform: translate(-50%, -50%); font-size: 18px; z-index: 4; display: none; pointer-events: none; line-height: 1; }
         
-        .station-name { flex: 1; padding-left: 10px; }
+        .station-name { flex: 1; padding-left: 10px; z-index: 3; }
 
         .bus-footer { padding: 12px; background: #f1f1f1; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
         .spz-tag { background: white; padding: 4px 10px; border: 2px solid #333; border-radius: 5px; font-family: monospace; font-weight: bold; }
@@ -251,12 +251,12 @@
                     if (teraz <= koniecD) {
                         if(busIcon) {
                             busIcon.style.display = "block";
-                            busIcon.style.top = (22 + (progressPercent * totalHeight)) + "px";
+                            busIcon.style.top = (22.5 + (progressPercent * totalHeight)) + "px";
                         }
                     } else {
                         if (busIcon) {
                             busIcon.style.display = "block";
-                            busIcon.style.top = (22 + totalHeight) + "px";
+                            busIcon.style.top = (22.5 + totalHeight) + "px";
                         }
                     }
 
