@@ -39,16 +39,18 @@
         
         .track-col { width: 40px; display: flex; justify-content: center; align-items: center; position: relative; height: 100%; }
         
+        /* VRSTVA 1: Podkladová sivá */
         .track-line-bg { position: absolute; width: 4px; background: #ddd; top: 0; bottom: 0; z-index: 1; border-radius: 2px; }
         .station-item:first-child .track-line-bg { top: 50%; }
         .station-item:last-child .track-line-bg { bottom: 50%; }
 
-        .track-line-progress { position: absolute; width: 4px; background: var(--secondary); top: 22px; height: 0; z-index: 2; border-radius: 2px; }
+        /* VRSTVA 5: Modrá stopa - musí byť NAD sivou */
+        .track-line-progress { position: absolute; width: 4px; background: var(--secondary); top: 22px; height: 0; z-index: 5; border-radius: 2px; }
         
-        .dot { width: 10px; height: 10px; background: #ccc; border-radius: 50%; border: 2px solid white; z-index: 3; transition: background 0.3s; }
+        .dot { width: 10px; height: 10px; background: #ccc; border-radius: 50%; border: 2px solid white; z-index: 6; transition: background 0.3s; }
         .dot.reached { background: var(--secondary); }
         
-        /* OPRAVA: Ikonka je teraz presne v strede stĺpca track-col */
+        /* VRSTVA 10: Autobus - musí byť úplne navrchu */
         .live-bus-icon { position: absolute; left: 50%; transform: translate(-50%, -50%); font-size: 18px; z-index: 10; display: none; pointer-events: none; }
         
         .station-name { flex: 1; padding-left: 10px; }
@@ -244,16 +246,15 @@
                     let itemHeight = 45;
                     let totalHeight = (spoj.trasa.length - 1) * itemHeight;
 
-                    // Aktualizácia modrej stopy
+                    // AKTUALIZÁCIA MODREJ STOPY (NAD SIVOU)
                     if (progressLine) {
                         progressLine.style.height = (progressPercent * totalHeight) + "px";
                     }
 
-                    // Pohyb autobusu - presne stredom
+                    // POHYB AUTOBUSU (NAJVYŠŠIA VRSTVA)
                     if (teraz <= koniecD) {
                         if(busIcon) {
                             busIcon.style.display = "block";
-                            // 22px je stred prvej guličky
                             busIcon.style.top = (22 + (progressPercent * totalHeight)) + "px";
                         }
                     } else {
@@ -276,7 +277,6 @@
             });
         }
 
-        // --- ZVYŠOK FUNKCIÍ ZOSTÁVA BEZ ZMENY ---
         function updateLiveStatus() {
             const id = document.getElementById('statusLineSelect').value;
             const val = document.getElementById('statusValueSelect').value;
