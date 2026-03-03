@@ -362,10 +362,10 @@
                 };
                 const trasyMapy = [
                     { pts: [coords["Jovice"], coords["Dlhá Lúka"], coords["Lipovník"]], color: '#004a99' },
-                    { pts: [coords["Dlhá Lúka"], coords["Jovice"], coords["Rožňava"]], color: '#e67e22' }
+                    { pts: [coords["Dlhá Lúka"], coords["Jovice"], coords["Rožňava"]], color: '#dc3545' }
                 ];
                 trasyMapy.forEach(r => {
-                    L.polyline(r.pts, {color: r.color, weight: 5, opacity: 0.7}).addTo(leafletMap);
+                    L.polyline(r.pts, {color: r.color, weight: 5, opacity: 1}).addTo(leafletMap);
                 });
                 // --- KONIEC PRIDANÝCH TRÁS ---
             }
