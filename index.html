@@ -46,12 +46,14 @@
         .station-item:first-child .track-line-bg { top: 50%; }
         .station-item:last-child .track-line-bg { bottom: 50%; }
 
+        /* MODRÁ STOPA */
         .track-line-progress { position: absolute; width: 4px; background: var(--secondary); top: 22.5px; left: 50%; transform: translateX(-50%); height: 0; z-index: 10 !important; border-radius: 2px; pointer-events: none; }
         
         .dot { width: 10px; height: 10px; background: #ccc; border-radius: 50%; border: 2px solid white; z-index: 5; transition: background 0.3s; position: relative; }
         .dot.reached { background: var(--secondary); }
         
-        .live-bus-icon { position: absolute; left: 50%; transform: translate(-50%, -50%); font-size: 18px; z-index: 200 !important; display: none; pointer-events: none; }
+        /* AUTOBUS - PLYNULEJŠÍ POHYB */
+        .live-bus-icon { position: absolute; left: 50%; transform: translate(-50%, -50%); font-size: 18px; z-index: 200 !important; display: none; pointer-events: none; transition: top 0.2s linear; }
         
         .station-name { flex: 1; padding-left: 10px; }
         .bus-footer { padding: 12px; background: #f1f1f1; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
@@ -197,7 +199,7 @@
                                         <span class="status-tag status-ontime" id="status-${spoj.id}">NAČAS</span>
                                         <span class="countdown-timer" id="countdown-${spoj.id}"></span>
                                     </div>
-                                    <span class="amenities">♿ 📶 ❄️</span>
+                                    <span class="amenities">♿ 📶</span>
                                 </div>
                             </div>
                         </div>
@@ -214,7 +216,7 @@
                 let opt = `<option value="${spoj.id}">${spoj.cislo} (${spoj.start})</option>`;
                 select.innerHTML += opt; statusSelect.innerHTML += opt;
             });
-            setInterval(aktualizujLivePohyb, 1000);
+            setInterval(aktualizujLivePohyb, 500); // Rýchlejší refresh pre plynulosť
         }
 
         function aktualizujLivePohyb() {
@@ -236,12 +238,15 @@
                 const progressLine = document.getElementById(`progress-${spoj.id}`);
 
                 if (teraz >= startD) {
+                    // Prepočet v sekundách pre maximálnu presnosť polohy
                     let ubehloSekundy = (teraz - startD) / 1000;
                     let celkovoSekundy = koniecMin * 60;
                     let progressPercent = Math.min(ubehloSekundy / (celkovoSekundy || 1), 1);
+                    
                     let itemHeight = 45;
                     let totalHeight = (spoj.trasa.length - 1) * itemHeight;
 
+                    // Okamžitá aktualizácia výšky modrej čiary
                     if (progressLine) progressLine.style.height = (progressPercent * totalHeight) + "px";
 
                     if (teraz <= koniecD) {
@@ -254,9 +259,12 @@
                         busIcon.style.top = (22.5 + totalHeight) + "px";
                     }
 
+                    // Označenie guličiek (ak autobus už prešiel časom zastávky)
                     spoj.min.forEach((minOffset, i) => {
                         const dot = document.getElementById(`dot-${spoj.id}-${i}`);
-                        if (dot && ubehloSekundy >= (minOffset * 60)) dot.classList.add('reached');
+                        if (dot && ubehloSekundy >= (minOffset * 60)) {
+                            dot.classList.add('reached');
+                        }
                     });
                 } else {
                     if (busIcon) busIcon.style.display = "none";
