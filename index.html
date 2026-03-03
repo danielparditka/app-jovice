@@ -33,13 +33,10 @@
         .bus-details { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; background: #fdfdfd; border-top: 1px dashed #ccc; }
         .bus-card.active .bus-details { max-height: 1500px; }
         
-        /* ÚPRAVA PRE SLEDOVANIE POLOHY A ZAROVNANIE */
         .stations-list { padding: 20px 15px; list-style: none; margin: 0; position: relative; }
         .station-item { display: flex; align-items: center; gap: 0; height: 45px; position: relative; font-size: 14px; z-index: 2; }
-        
         .time { font-weight: bold; color: var(--secondary); min-width: 50px; text-align: left; }
         
-        /* Stredový stĺpec s guličkou a čiarou */
         .track-col { width: 40px; display: flex; justify-content: center; align-items: center; position: relative; height: 100%; }
         .track-line { position: absolute; width: 2px; background: #ddd; top: 0; bottom: 0; z-index: 1; }
         .station-item:first-child .track-line { top: 50%; }
@@ -48,9 +45,7 @@
         .dot { width: 10px; height: 10px; background: #ccc; border-radius: 50%; border: 2px solid white; z-index: 3; transition: background 0.3s; }
         .dot.reached { background: var(--secondary); }
         
-        /* Ikonka autobusu */
         .live-bus-icon { position: absolute; left: 50%; transform: translate(-50%, -50%); font-size: 18px; z-index: 10; display: none; pointer-events: none; }
-
         .station-name { flex: 1; padding-left: 5px; }
         
         .bus-footer { padding: 12px; background: #f1f1f1; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
@@ -116,7 +111,6 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // DATABÁZA - VŠETKY NÁZVY CELÝM MENOM PODĽA INŠTRUKCIÍ
         const zastavkyJoviceLipovnik = ["Jovice, aut. stanica", "Jovice, Hradná ul., most", "Jovice, Hradná ul., odbočka", "Jovice, futbalové ihrisko", "Pole, č. 1", "Pole, č. 2", "Krásnohorská Dlhá Lúka, západ", "Krásnohorská Dlhá Lúka, kríž", "Krásnohorská Dlhá Lúka, Jednota", "Krásnohorská Dlhá Lúka, most", "Krásnohorská Dlhá Lúka, cintorín", "Lipovník, zákruta", "Lipovník, železničný most", "Lipovník, železničná stanica", "Lipovník, č. d. 1", "Lipovník, obchádzka", "Lipovník, Jednota"];
         const casyJoviceLipovnik = [0, 1, 2, 3, 4, 6, 8, 9, 10, 11, 12, 15, 17, 22, 25, 27, 29];
         
@@ -234,18 +228,16 @@
                 const busIcon = document.getElementById(`live-bus-${spoj.id}`);
 
                 if (teraz >= startD && teraz <= koniecD) {
-                    busIcon.style.display = "block";
+                    if(busIcon) busIcon.style.display = "block";
                     let ubehloMin = (teraz - startD) / 60000;
-                    
-                    // Výpočet pozície: každý station-item má 45px výšku. Padding zoznamu je 20px.
                     let totalHeight = (spoj.trasa.length - 1) * 45;
                     let progress = ubehloMin / (spoj.min[spoj.min.length-1] || 1);
-                    busIcon.style.top = (20 + (progress * totalHeight)) + "px";
+                    if(busIcon) busIcon.style.top = (20 + (progress * totalHeight)) + "px";
 
                     spoj.min.forEach((minOffset, i) => {
                         const dot = document.getElementById(`dot-${spoj.id}-${i}`);
-                        if (ubehloMin >= minOffset) dot.classList.add('reached');
-                        else dot.classList.remove('reached');
+                        if (dot && ubehloMin >= minOffset) dot.classList.add('reached');
+                        else if (dot) dot.classList.remove('reached');
                     });
                 } else {
                     if (busIcon) busIcon.style.display = "none";
@@ -253,7 +245,6 @@
             });
         }
 
-        // PÔVODNÉ FUNKCIE Z TVOJHO KÓDU (Nezmenené)
         function updateLiveStatus() {
             const id = document.getElementById('statusLineSelect').value;
             const val = document.getElementById('statusValueSelect').value;
@@ -261,25 +252,34 @@
             if(tag) {
                 tag.className = "status-tag " + (val === 'ontime' ? 'status-ontime' : 'status-delayed');
                 tag.innerText = val === 'ontime' ? 'NAČAS' : (val === 'delayed' ? 'MEŠKANIE' : 'ZRUŠENÉ');
+                alert("Stav spoja bol úspešne aktualizovaný.");
             }
         }
 
         function updateApp() {
             const note = document.getElementById('adminNote').value;
             const oznam = document.getElementById('dispecing-oznam');
-            if (note) { oznam.innerText = "⚠️ " + note; oznam.style.display = "block"; }
+            if (note) { 
+                oznam.innerText = "⚠️ " + note; 
+                oznam.style.display = "block"; 
+                alert("Oznam bol úspešne publikovaný.");
+            }
         }
 
         function clearOznam() {
             document.getElementById('dispecing-oznam').style.display = "none";
             document.getElementById('adminNote').value = "";
+            alert("Oznam bol odstránený.");
         }
 
         function updateSpzOnly() {
             const spz = document.getElementById('newSpz').value;
             const id = document.getElementById('lineSelect').value;
             const tag = document.getElementById('tag-' + id);
-            if (spz && tag) { tag.innerText = spz; }
+            if (spz && tag) { 
+                tag.innerText = spz; 
+                alert("eŠPZ bola úspešne pridelená k linke.");
+            }
         }
 
         function showAutocomplete() {
@@ -306,7 +306,10 @@
             });
         }
 
-        function clearTime() { document.getElementById("timeInput").value = ""; executeSearch(); }
+        // OPRAVA: Tlačidlo len vymaže text, ale nespustí vyhľadávanie
+        function clearTime() { 
+            document.getElementById("timeInput").value = ""; 
+        }
 
         let leafletMap;
         function toggleMap() {
@@ -317,8 +320,12 @@
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(leafletMap);
                 const p_jovice = [48.6369, 20.5564], p_luka = [48.6186, 20.5786], p_lipovnik = [48.6342, 20.6183];
                 L.marker(p_jovice).addTo(leafletMap).bindPopup("Jovice");
-                L.marker(p_luka).addTo(leafletMap).bindPopup("Krh. Dlhá Lúka");
+                L.marker(p_luka).addTo(leafletMap).bindPopup("Krásnohorská Dlhá Lúka");
                 L.marker(p_lipovnik).addTo(leafletMap).bindPopup("Lipovník");
+                
+                // VRÁTENÉ FAREBNÉ ČIARY TRÁS
+                L.polyline([p_jovice, p_luka], {color: 'red', weight: 5, opacity: 0.7}).addTo(leafletMap);
+                L.polyline([p_luka, p_lipovnik], {color: 'blue', weight: 5, opacity: 0.7}).addTo(leafletMap);
             }
         }
 
