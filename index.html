@@ -223,22 +223,27 @@
     const teraz = new Date();
     
     spoje.forEach(spoj => {
+        // --- TENTO RIADOK CHÝBAL (ZABEZPEČUJE ODPOČÍTAVANIE) ---
         const elTimer = document.getElementById('countdown-' + spoj.id);
+        if (elTimer) {
+            const zostava = vypocitajZostavajuciCas(spoj.start);
+            elTimer.innerText = zostava || "";
+            elTimer.style.display = zostava ? "inline-block" : "none";
+        }
+        // -------------------------------------------------------
+
         const [h, m] = spoj.start.split(':').map(Number);
-        
         const startD = new Date(); 
         startD.setHours(h, m, 0, 0);
         
         const busIcon = document.getElementById(`live-bus-${spoj.id}`);
         const progressLine = document.getElementById(`progress-${spoj.id}`);
 
-        // Používame getTime() pre maximálnu presnosť pri "prebudení"
         if (teraz.getTime() >= startD.getTime()) {
             let ubehloMinuty = (teraz.getTime() - startD.getTime()) / 60000;
             let itemHeight = 45; 
             let aktualnyIndex = 0;
 
-            // ZISTÍ PRESNÚ ZASTÁVKU PODĽA REÁLNEHO ČASU
             for (let i = 0; i < spoj.min.length - 1; i++) {
                 if (ubehloMinuty >= spoj.min[i]) {
                     aktualnyIndex = i;
@@ -247,25 +252,21 @@
 
             let finalnaPozicia = aktualnyIndex * itemHeight;
 
-            // PLYNULÝ POSUN (vypočíta sa hneď po prebudení telefónu)
             if (aktualnyIndex < spoj.min.length - 1) {
                 let casOdZastavky = ubehloMinuty - spoj.min[aktualnyIndex];
                 let trvanieUseku = spoj.min[aktualnyIndex + 1] - spoj.min[aktualnyIndex];
                 let percentoUseku = Math.min(casOdZastavky / trvanieUseku, 1);
                 finalnaPozicia += (percentoUseku * itemHeight);
             } else {
-                // Ak je už autobus v cieli
                 finalnaPozicia = (spoj.trasa.length - 1) * itemHeight;
             }
 
-            // OKAMŽITÉ PREKRESLENIE PO ZAPNUTÍ DISPLEJA
             if (progressLine) progressLine.style.height = finalnaPozicia + "px";
             if (busIcon) {
                 busIcon.style.display = "block";
                 busIcon.style.top = (22.5 + finalnaPozicia) + "px";
             }
 
-            // ROZSVIETENIE GULIČIEK
             spoj.min.forEach((minOffset, i) => {
                 const dot = document.getElementById(`dot-${spoj.id}-${i}`);
                 if (dot && ubehloMinuty >= minOffset) {
@@ -276,16 +277,13 @@
     });
 }
 
-// TÁTO ČASŤ JE KĽÚČOVÁ PRE IPHONE:
-// Keď používateľ prepne späť na Safari alebo rozsvieti displej, 
-// kód okamžite spustí aktualizáciu bez čakania na ďalšiu sekundu.
+// Poistka pre iPhone/Android pri prebudení
 document.addEventListener('visibilitychange', function() {
     if (!document.hidden) {
         aktualizujLivePohyb();
     }
 });
 
-// A samozrejme klasický interval, ktorý to drží nažive
 setInterval(aktualizujLivePohyb, 1000);
 
         function updateLiveStatus() {
