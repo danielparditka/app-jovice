@@ -220,67 +220,73 @@
         }
 
         function aktualizujLivePohyb() {
-            const teraz = new Date();
-            spoje.forEach(spoj => {
-                const elTimer = document.getElementById('countdown-' + spoj.id);
-                if (elTimer) {
-                    const text = vypocitajZostavajuciCas(spoj.start);
-                    elTimer.innerText = text || "";
-                    elTimer.style.display = text ? "inline-block" : "none";
+    const teraz = new Date();
+    
+    spoje.forEach(spoj => {
+        const elTimer = document.getElementById('countdown-' + spoj.id);
+        const [h, m] = spoj.start.split(':').map(Number);
+        
+        const startD = new Date(); 
+        startD.setHours(h, m, 0, 0);
+        
+        const busIcon = document.getElementById(`live-bus-${spoj.id}`);
+        const progressLine = document.getElementById(`progress-${spoj.id}`);
+
+        // Používame getTime() pre maximálnu presnosť pri "prebudení"
+        if (teraz.getTime() >= startD.getTime()) {
+            let ubehloMinuty = (teraz.getTime() - startD.getTime()) / 60000;
+            let itemHeight = 45; 
+            let aktualnyIndex = 0;
+
+            // ZISTÍ PRESNÚ ZASTÁVKU PODĽA REÁLNEHO ČASU
+            for (let i = 0; i < spoj.min.length - 1; i++) {
+                if (ubehloMinuty >= spoj.min[i]) {
+                    aktualnyIndex = i;
                 }
+            }
 
-                const [h, m] = spoj.start.split(':').map(Number);
-                const startD = new Date(); startD.setHours(h, m, 0, 0);
-                
-                const busIcon = document.getElementById(`live-bus-${spoj.id}`);
-                const progressLine = document.getElementById(`progress-${spoj.id}`);
+            let finalnaPozicia = aktualnyIndex * itemHeight;
 
-                if (teraz >= startD) {
-                    let ubehloSekundy = (teraz - startD) / 1000;
-                    let ubehloMinuty = ubehloSekundy / 60;
-                    
-                    let itemHeight = 45;
-                    let aktualnyIndex = 0;
-                    
-                    for (let i = 0; i < spoj.min.length - 1; i++) {
-                        if (ubehloMinuty >= spoj.min[i] && ubehloMinuty < spoj.min[i+1]) {
-                            aktualnyIndex = i;
-                            break;
-                        }
-                        if (ubehloMinuty >= spoj.min[spoj.min.length - 1]) {
-                            aktualnyIndex = spoj.min.length - 1;
-                        }
-                    }
+            // PLYNULÝ POSUN (vypočíta sa hneď po prebudení telefónu)
+            if (aktualnyIndex < spoj.min.length - 1) {
+                let casOdZastavky = ubehloMinuty - spoj.min[aktualnyIndex];
+                let trvanieUseku = spoj.min[aktualnyIndex + 1] - spoj.min[aktualnyIndex];
+                let percentoUseku = Math.min(casOdZastavky / trvanieUseku, 1);
+                finalnaPozicia += (percentoUseku * itemHeight);
+            } else {
+                // Ak je už autobus v cieli
+                finalnaPozicia = (spoj.trasa.length - 1) * itemHeight;
+            }
 
-                    let finalnaPozicia = 0;
+            // OKAMŽITÉ PREKRESLENIE PO ZAPNUTÍ DISPLEJA
+            if (progressLine) progressLine.style.height = finalnaPozicia + "px";
+            if (busIcon) {
+                busIcon.style.display = "block";
+                busIcon.style.top = (22.5 + finalnaPozicia) + "px";
+            }
 
-                    if (aktualnyIndex < spoj.min.length - 1) {
-                        let casOdZastavky = ubehloMinuty - spoj.min[aktualnyIndex];
-                        let trvanieMedziuseku = spoj.min[aktualnyIndex+1] - spoj.min[aktualnyIndex];
-                        let percentoMedziuseku = casOdZastavky / trvanieMedziuseku;
-                        finalnaPozicia = (aktualnyIndex * itemHeight) + (percentoMedziuseku * itemHeight);
-                    } else {
-                        finalnaPozicia = (spoj.trasa.length - 1) * itemHeight;
-                    }
-
-                    if (progressLine) progressLine.style.height = finalnaPozicia + "px";
-                    if (busIcon) {
-                        busIcon.style.display = "block";
-                        busIcon.style.top = (22.5 + finalnaPozicia) + "px";
-                    }
-
-                    spoj.min.forEach((minOffset, i) => {
-                        const dot = document.getElementById(`dot-${spoj.id}-${i}`);
-                        if (dot && ubehloMinuty >= minOffset) {
-                            dot.classList.add('reached');
-                        }
-                    });
-                } else {
-                    if (busIcon) busIcon.style.display = "none";
-                    if (progressLine) progressLine.style.height = "0px";
+            // ROZSVIETENIE GULIČIEK
+            spoj.min.forEach((minOffset, i) => {
+                const dot = document.getElementById(`dot-${spoj.id}-${i}`);
+                if (dot && ubehloMinuty >= minOffset) {
+                    dot.classList.add('reached');
                 }
             });
         }
+    });
+}
+
+// TÁTO ČASŤ JE KĽÚČOVÁ PRE IPHONE:
+// Keď používateľ prepne späť na Safari alebo rozsvieti displej, 
+// kód okamžite spustí aktualizáciu bez čakania na ďalšiu sekundu.
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        aktualizujLivePohyb();
+    }
+});
+
+// A samozrejme klasický interval, ktorý to drží nažive
+setInterval(aktualizujLivePohyb, 1000);
 
         function updateLiveStatus() {
             const id = document.getElementById('statusLineSelect').value;
