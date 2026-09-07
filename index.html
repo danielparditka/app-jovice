@@ -35,7 +35,7 @@
         .countdown-timer { font-size: 12px; font-weight: bold; color: #d35400; background: #fff3e0; padding: 2px 6px; border-radius: 4px; border: 1px solid #ffcc80; display: inline-block; }
         .amenities { font-size: 14px; color: #555; }
 
-        .bus-details { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; background: #fdfdfd; border-top: 1px dashed #ccc; }
+        .bus-details { max-height: 0; overflow: hidden; position: relative; transition: max-height 0.4s ease-out; background: #fdfdfd; border-top: 1px dashed #ccc; }
         .bus-card.active .bus-details { max-height: 2000px; }
         
         .stations-list { padding: 20px 15px; list-style: none; margin: 0; position: relative; }
@@ -287,33 +287,44 @@
 
                 if (teraz.getTime() >= startD.getTime()) {
                     let ubehloMinuty = (teraz.getTime() - startD.getTime()) / 60000;
-                    let itemHeight = 45; 
                     let lastIdx = spoj.min.length - 1;
                     let maxMinut = spoj.min[lastIdx];
 
+                    const card = busIcon ? busIcon.closest('.bus-card') : null;
+                    const items = card ? card.querySelectorAll('.station-item') : [];
+
                     let finalnaPozicia = 0;
 
-                    if (ubehloMinuty >= maxMinut) {
-                        // Presne bod B - autobus zostane stáť presne v poslednom bode
-                        finalnaPozicia = lastIdx * itemHeight;
-                    } else {
-                        let aktualnyIndex = 0;
-                        for (let i = 0; i < lastIdx; i++) {
-                            if (ubehloMinuty >= spoj.min[i]) {
-                                aktualnyIndex = i;
+                    if (items.length > 0 && items.length === spoj.trasa.length) {
+                        const top0 = items[0].offsetTop;
+                        const topLast = items[lastIdx].offsetTop;
+                        const maxOffset = topLast - top0;
+
+                        if (ubehloMinuty >= maxMinut) {
+                            finalnaPozicia = maxOffset;
+                        } else {
+                            let aktualnyIndex = 0;
+                            for (let i = 0; i < lastIdx; i++) {
+                                if (ubehloMinuty >= spoj.min[i]) {
+                                    aktualnyIndex = i;
+                                }
                             }
+
+                            let casOdZastavky = ubehloMinuty - spoj.min[aktualnyIndex];
+                            let trvanieUseku = spoj.min[aktualnyIndex + 1] - spoj.min[aktualnyIndex];
+                            let percentoUseku = trvanieUseku > 0 ? (casOdZastavky / trvanieUseku) : 0;
+                            percentoUseku = Math.max(0, Math.min(1, percentoUseku));
+
+                            const topCurrent = items[aktualnyIndex].offsetTop - top0;
+                            const topNext = items[aktualnyIndex + 1].offsetTop - top0;
+                            finalnaPozicia = topCurrent + (topNext - topCurrent) * percentoUseku;
                         }
 
-                        let casOdZastavky = ubehloMinuty - spoj.min[aktualnyIndex];
-                        let trvanieUseku = spoj.min[aktualnyIndex + 1] - spoj.min[aktualnyIndex];
-                        let percentoUseku = trvanieUseku > 0 ? (casOdZastavky / trvanieUseku) : 0;
-                        percentoUseku = Math.max(0, Math.min(1, percentoUseku));
-
-                        finalnaPozicia = (aktualnyIndex + percentoUseku) * itemHeight;
+                        finalnaPozicia = Math.min(finalnaPozicia, maxOffset);
+                    } else {
+                        let itemHeight = 45;
+                        finalnaPozicia = Math.min(lastIdx * itemHeight, (ubehloMinuty / maxMinut) * (lastIdx * itemHeight));
                     }
-
-                    // Garantované zastavenie presne na úsečke A -> B
-                    finalnaPozicia = Math.min(finalnaPozicia, lastIdx * itemHeight);
 
                     if (progressLine) progressLine.style.height = finalnaPozicia + "px";
                     if (busIcon) {
