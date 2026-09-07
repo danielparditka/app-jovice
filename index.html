@@ -168,11 +168,11 @@
             { id: "Spiat_1", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "15:55", trasa: zastavkyLipovnikJovice_spat, min: minutyLipovnikJovice_spat },
             { id: "Spiat_2", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "16:15", trasa: zastavkyLipovnikJovice_spat, min: minutyLipovnikJovice_spat },
             
-            // --- PRIDANÉ NOVÉ LINKY JOVICE <-> LIPOVNÍK ---
-            { id: "7", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "16:30", trasa: zastavkyJoviceLipovnik_tam, min: minutyJoviceLipovnik_tam },
-            { id: "Spiat_3", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "17:05", trasa: zastavkyLipovnikJovice_spat, min: minutyLipovnikJovice_spat },
-            { id: "8", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "17:10", trasa: zastavkyJoviceLipovnik_tam, min: minutyJoviceLipovnik_tam },
-            { id: "Spiat_4", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "17:45", trasa: zastavkyLipovnikJovice_spat, min: minutyLipovnikJovice_spat },
+            // --- AKTUALIZOVANÉ LINKY JOVICE <-> LIPOVNÍK S NOVÝMI ČASMI ---
+            { id: "7", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "17:30", trasa: zastavkyJoviceLipovnik_tam, min: minutyJoviceLipovnik_tam },
+            { id: "Spiat_3", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "18:05", trasa: zastavkyLipovnikJovice_spat, min: minutyLipovnikJovice_spat },
+            { id: "8", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "18:10", trasa: zastavkyJoviceLipovnik_tam, min: minutyJoviceLipovnik_tam },
+            { id: "Spiat_4", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "18:45", trasa: zastavkyLipovnikJovice_spat, min: minutyLipovnikJovice_spat },
 
             // --- OSTATNÉ LINKY ---
             { id: "5", cislo: "808423", smer: "Jovice ➔ Krásnohorská Dlhá Lúka", start: "15:20", trasa: zastavkyJoviceLipovnik_tam.slice(0, 9), min: minutyJoviceLipovnik_tam.slice(0, 9) },
@@ -305,19 +305,20 @@
                     }
 
                     const dotCurrent = document.getElementById(`dot-${spoj.id}-${aktualnyIndex}`);
-                    const firstDotRect = firstDot.getBoundingClientRect();
-                    
                     let finalY = 0;
 
+                    // OPRAVENÁ A ROBUSTNÁ MATEMATIKA: Počítanie vnútornej výšky (offsetTop) namiesto zrádzajúceho getBoundingClientRect
                     if (dotCurrent) {
-                        const currentDotRect = dotCurrent.getBoundingClientRect();
-                        let y_current = currentDotRect.top - firstDotRect.top;
+                        const firstItem = firstDot.closest('.station-item');
+                        const currentItem = dotCurrent.closest('.station-item');
+                        
+                        let y_current = currentItem.offsetTop - firstItem.offsetTop;
 
                         if (aktualnyIndex < spoj.min.length - 1) {
                             const dotNext = document.getElementById(`dot-${spoj.id}-${aktualnyIndex + 1}`);
                             if (dotNext) {
-                                const nextDotRect = dotNext.getBoundingClientRect();
-                                let y_next = nextDotRect.top - firstDotRect.top;
+                                const nextItem = dotNext.closest('.station-item');
+                                let y_next = nextItem.offsetTop - firstItem.offsetTop;
                                 
                                 let casOdZastavky = ubehloMinuty - spoj.min[aktualnyIndex];
                                 let trvanieUseku = spoj.min[aktualnyIndex + 1] - spoj.min[aktualnyIndex];
