@@ -40,7 +40,6 @@
         
         .stations-list { padding: 20px 15px; list-style: none; margin: 0; position: relative; }
         .station-item { display: flex; align-items: center; gap: 0; height: 45px; position: relative; font-size: 14px; }
-        /* Kľúčová oprava: Prvá zastávka drží ikonu a modrú čiarku, preto musí mať vyšší z-index ako ostatné riadky */
         .station-item:first-child { z-index: 10; }
         
         .time { font-weight: bold; color: var(--secondary); min-width: 50px; text-align: left; }
@@ -162,6 +161,13 @@
             { id: "4", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "15:40", trasa: zastavkyJoviceLipovnik, min: casyJoviceLipovnik },
             { id: "Spiat_1", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "15:55", trasa: [...zastavkyJoviceLipovnik].reverse(), min: casyJoviceLipovnik },
             { id: "Spiat_2", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "16:15", trasa: [...zastavkyJoviceLipovnik].reverse(), min: casyJoviceLipovnik },
+            
+            // --- NOVÉ LINKY O 17:30 a 18:10 VRÁTANE SPIATOČNÝCH ---
+            { id: "N1730", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "17:30", trasa: zastavkyJoviceLipovnik, min: casyJoviceLipovnik },
+            { id: "N1800", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "18:00", trasa: [...zastavkyJoviceLipovnik].reverse(), min: casyJoviceLipovnik },
+            { id: "N1810", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "18:10", trasa: zastavkyJoviceLipovnik, min: casyJoviceLipovnik },
+            { id: "N1840", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "18:40", trasa: [...zastavkyJoviceLipovnik].reverse(), min: casyJoviceLipovnik },
+
             { id: "5", cislo: "808423", smer: "Jovice ➔ Krásnohorská Dlhá Lúka", start: "15:20", trasa: zastavkyJoviceLipovnik.slice(0, 9), min: casyJoviceLipovnik.slice(0, 9) },
             { id: "6", cislo: "808423", smer: "Krásnohorská Dlhá Lúka ➔ Jovice", start: "15:40", trasa: zastavkyJoviceLipovnik.slice(0, 9).reverse(), min: [0, 1, 2, 3, 5, 6, 7, 8, 9] },
             { id: "S1", cislo: "1", smer: "Jovice, Jednota ➔ Jovice, materská škôlka", start: "15:51", trasa: ["Jovice, Jednota", "Jovice, aut. stanica", "Jovice, materská škôlka"], min: [0, 1, 2] },
@@ -282,24 +288,32 @@
                 if (teraz.getTime() >= startD.getTime()) {
                     let ubehloMinuty = (teraz.getTime() - startD.getTime()) / 60000;
                     let itemHeight = 45; 
-                    let aktualnyIndex = 0;
+                    let lastIdx = spoj.min.length - 1;
+                    let maxMinut = spoj.min[lastIdx];
 
-                    for (let i = 0; i < spoj.min.length - 1; i++) {
-                        if (ubehloMinuty >= spoj.min[i]) {
-                            aktualnyIndex = i;
+                    let finalnaPozicia = 0;
+
+                    if (ubehloMinuty >= maxMinut) {
+                        // Presne bod B - autobus zostane stáť presne v poslednom bode
+                        finalnaPozicia = lastIdx * itemHeight;
+                    } else {
+                        let aktualnyIndex = 0;
+                        for (let i = 0; i < lastIdx; i++) {
+                            if (ubehloMinuty >= spoj.min[i]) {
+                                aktualnyIndex = i;
+                            }
                         }
-                    }
 
-                    let finalnaPozicia = aktualnyIndex * itemHeight;
-
-                    if (aktualnyIndex < spoj.min.length - 1) {
                         let casOdZastavky = ubehloMinuty - spoj.min[aktualnyIndex];
                         let trvanieUseku = spoj.min[aktualnyIndex + 1] - spoj.min[aktualnyIndex];
-                        let percentoUseku = Math.min(casOdZastavky / trvanieUseku, 1);
-                        finalnaPozicia += (percentoUseku * itemHeight);
-                    } else {
-                        finalnaPozicia = (spoj.trasa.length - 1) * itemHeight;
+                        let percentoUseku = trvanieUseku > 0 ? (casOdZastavky / trvanieUseku) : 0;
+                        percentoUseku = Math.max(0, Math.min(1, percentoUseku));
+
+                        finalnaPozicia = (aktualnyIndex + percentoUseku) * itemHeight;
                     }
+
+                    // Garantované zastavenie presne na úsečke A -> B
+                    finalnaPozicia = Math.min(finalnaPozicia, lastIdx * itemHeight);
 
                     if (progressLine) progressLine.style.height = finalnaPozicia + "px";
                     if (busIcon) {
