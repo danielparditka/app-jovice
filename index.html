@@ -147,26 +147,26 @@
         ];
         const minutyDialkova_spat = [0, 3, 6, 8, 10, 15, 17, 19, 21, 24, 25, 26, 27, 28, 29, 31, 33, 34, 35, 36];
 
-        // ZÁKLADNÉ POLIA PRE OKRUŽNÚ LINKU (štandardná verzia)
+        // ZÁKLADNÉ POLIA PRE OKRUŽNÚ LINKU
         const okruznaTrasaStandard = [
-            "Jovice, stred", "Jovice, OcÚ", "Jovice, č. d. 25", "Jovice, nová sídlisko mladosť", 
+            "Jovice, aut. st.", "Jovice, OcÚ", "Jovice, č. d. 25", "Jovice, nová sídlisko mladosť", 
             "Jovice, západ", "Jovice, kostol", "Jovice, poľný smrek", "Jovice, ranč", 
-            "Jovice, mlynská", "Jovice, Byster č.d. 391", "Jovice, Byster", "Jovice, Hradná ul. otočka", 
+            "Jovice, Mlynská ul.", "Jovice, Byster č.d. 391", "Jovice, Byster", "Jovice, Hradná ul. otočka", 
             "Jovice, Hradná ul. rázc.", "Jovice, Hradná ul. most", "Jovice, aut. st."
         ];
         const okruznaMinutyStandard = [0, 0, 1, 2, 3, 4, 5, 6, 7, 7, 8, 9, 9, 9, 10];
 
-        // ROZŠÍRENÁ VERZIA PRE SPOJE O 15:55 A 18:30 (s dvoma zastávkami navyše)
+        // ROZŠÍRENÁ VERZIA PRE SPOJE O 15:55 A 18:30
         const okruznaTrasaRozsirena = [
-            "Jovice, stred", "Jovice, OcÚ", "Jovice, č. d. 25", "Jovice, nová sídlisko mladosť", 
+            "Jovice, aut. st.", "Jovice, OcÚ", "Jovice, č. d. 25", "Jovice, nová sídlisko mladosť", 
             "Jovice, západ", "Jovice, kostol", "Jovice, poľný smrek", "Jovice, ranč", 
-            "Jovice, mlynská", "Jovice, Byster č.d. 391", "Jovice, Byster", "Jovice, Hradná ul. otočka", 
+            "Jovice, Mlynská ul.", "Jovice, Byster č.d. 391", "Jovice, Byster", "Jovice, Hradná ul. otočka", 
             "Jovice, Hradná ul. rázc.", "Jovice, Hradná ul. most", "Jovice, aut. st.", 
             "Jovice, Starocintorínska ul.", "Jovice, aut. st."
         ];
         const okruznaMinutyRozsirena = [0, 0, 1, 2, 3, 4, 5, 6, 7, 7, 8, 9, 9, 9, 10, 11, 12];
 
-        // NOVÉ SPIATOČNÉ SPOJE (Krásnohorská Dlhá Lúka, kríž ➔ Lipovník, Jednota)
+        // TRASA A MINÚTY (Krásnohorská Dlhá Lúka, kríž ➔ Lipovník, Jednota)
         const trasaKrizLipovnik = [
             "Krásnohorská Dlhá Lúka, kríž", "Krásnohorská Dlhá Lúka, Jednota", 
             "Krásnohorská Dlhá Lúka, most", "Krásnohorská Dlhá Lúka, cintorín", 
@@ -183,7 +183,6 @@
             { id: "Spiat_1", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "15:55", trasa: [...zastavkyJoviceLipovnik].reverse(), min: casyJoviceLipovnik },
             { id: "Spiat_2", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "16:15", trasa: [...zastavkyJoviceLipovnik].reverse(), min: casyJoviceLipovnik },
             
-            // OPRAVENÁ PRESTÁVKA: Linka o 18:10 z Jovíc (zabezpečený dostatočný časový odstup/nadväznosť)
             { id: "N1730", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "17:30", trasa: zastavkyJoviceLipovnik, min: casyJoviceLipovnik },
             { id: "N1800", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "18:00", trasa: [...zastavkyJoviceLipovnik].reverse(), min: casyJoviceLipovnik },
             { id: "N1810", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "18:10", trasa: zastavkyJoviceLipovnik, min: casyJoviceLipovnik },
@@ -195,26 +194,32 @@
             { id: "S2", cislo: "1", smer: "Jovice, materská škôlka ➔ Jovice, Jednota", start: "15:59", trasa: ["Jovice, materská škôlka", "Jovice, Jednota"], min: [0, 1] },
             { id: "R1", cislo: "808426", smer: "Krásnohorská Dlhá Lúka, kríž ➔ Rožňava, AS", start: "14:51", trasa: trasa808426_tam, min: minuty808426_tam },
             { id: "R2", cislo: "808426", smer: "Rožňava, AS ➔ Krásnohorská Dlhá Lúka, kríž", start: "15:40", trasa: [...trasa808426_tam].reverse(), min: minuty808426_tam },
-            { id: "L1", cislo: "808478", smer: "Jovice, Jednota ➔ Jovice, pod lesom", start: "12:00", trasa: ["Jovice, Jednota", "Jovice, stred", "Jovice, pod lesom"], min: [0, 1, 2] },
-            { id: "L2", cislo: "808478", smer: "Jovice, pod lesom ➔ Jovice, Jednota", start: "12:03", trasa: ["Jovice, pod lesom", "Jovice, stred", "Jovice, Jednota"], min: [0, 1, 2] },
+            
+            { id: "L1", cislo: "808478", smer: "Jovice, Jednota ➔ Jovice, pod lesom", start: "12:00", trasa: ["Jovice, Jednota", "Jovice, aut. st.", "Jovice, pod lesom"], min: [0, 1, 2] },
+            { id: "L2", cislo: "808478", smer: "Jovice, pod lesom ➔ Jovice, Jednota", start: "12:03", trasa: ["Jovice, pod lesom", "Jovice, aut. st.", "Jovice, Jednota"], min: [0, 1, 2] },
+            
             { id: "D1", cislo: "808433", smer: "Krásnohorská Dlhá Lúka, most ➔ Rožňava, AS", start: "14:00", trasa: zastavkyDialkova_tam, min: minutyDialkova_tam, dialkova: true },
             { id: "D2", cislo: "808433", smer: "Rožňava, AS ➔ Krásnohorská Dlhá Lúka, most", start: "15:30", trasa: zastavkyDialkova_spat, min: minutyDialkova_spat, dialkova: true },
 
-            // NOVÉ OKRUŽNÉ LINKY
-            { id: "OKR_1310", cislo: "OK1", smer: "Jovice (Okružná) ➔ Jovice", start: "13:10", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
-            { id: "OKR_1410", cislo: "OK1", smer: "Jovice (Okružná) ➔ Jovice", start: "14:10", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
-            { id: "OKR_1500", cislo: "OK1", smer: "Jovice (Okružná) ➔ Jovice", start: "15:00", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
-            { id: "OKR_1555", cislo: "OK1", smer: "Jovice (Okružná - rozšírená) ➔ Jovice", start: "15:55", trasa: okruznaTrasaRozsirena, min: okruznaMinutyRozsirena },
-            { id: "OKR_1620", cislo: "OK1", smer: "Jovice (Okružná) ➔ Jovice", start: "16:20", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
-            { id: "OKR_1715", cislo: "OK1", smer: "Jovice (Okružná) ➔ Jovice", start: "17:15", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
-            { id: "OKR_1800", cislo: "OK1", smer: "Jovice (Okružná) ➔ Jovice", start: "18:00", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
-            { id: "OKR_1830", cislo: "OK1", smer: "Jovice (Okružná - rozšírená) ➔ Jovice", start: "18:30", trasa: okruznaTrasaRozsirena, min: okruznaMinutyRozsirena },
-            { id: "OKR_1900", cislo: "OK1", smer: "Jovice (Okružná) ➔ Jovice", start: "19:00", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
+            { id: "OKR_1310", cislo: "MHD1", smer: "Jovice (Okružná) ➔ Jovice", start: "13:10", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
+            { id: "OKR_1410", cislo: "MHD1", smer: "Jovice (Okružná) ➔ Jovice", start: "14:10", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
+            { id: "OKR_1500", cislo: "MHD1", smer: "Jovice (Okružná) ➔ Jovice", start: "15:00", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
+            { id: "OKR_1555", cislo: "MHD1", smer: "Jovice (Okružná - rozšírená) ➔ Jovice", start: "15:55", trasa: okruznaTrasaRozsirena, min: okruznaMinutyRozsirena },
+            { id: "OKR_1620", cislo: "MHD1", smer: "Jovice (Okružná) ➔ Jovice", start: "16:20", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
+            { id: "OKR_1715", cislo: "MHD1", smer: "Jovice (Okružná) ➔ Jovice", start: "17:15", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
+            { id: "OKR_1800", cislo: "MHD1", smer: "Jovice (Okružná) ➔ Jovice", start: "18:00", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
+            { id: "OKR_1830", cislo: "MHD1", smer: "Jovice (Okružná - rozšírená) ➔ Jovice", start: "18:30", trasa: okruznaTrasaRozsirena, min: okruznaMinutyRozsirena },
+            { id: "OKR_1900", cislo: "MHD1", smer: "Jovice (Okružná) ➔ Jovice", start: "19:00", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
 
-            // NOVÉ SPIATOČNÉ SPOJE (Krásnohorská Dlhá Lúka, kríž ➔ Lipovník, Jednota) (3 rôzne časy)
-            { id: "KL_1430", cislo: "808427", smer: "Krásnohorská Dlhá Lúka, kríž ➔ Lipovník, Jednota", start: "14:30", trasa: trasaKrizLipovnik, min: minutyKrizLipovnik },
-            { id: "KL_1600", cislo: "808427", smer: "Krásnohorská Dlhá Lúka, kríž ➔ Lipovník, Jednota", start: "16:00", trasa: trasaKrizLipovnik, min: minutyKrizLipovnik },
-            { id: "KL_1730", cislo: "808427", smer: "Krásnohorská Dlhá Lúka, kríž ➔ Lipovník, Jednota", start: "17:30", trasa: trasaKrizLipovnik, min: minutyKrizLipovnik }
+            // SPOJE Z KRÁSNOHORSKEJ DLHEJ LÚKY DO LIPOVNÍKA S 5-MINÚTOVOU PRESTÁVKOU V LIPOVNÍKU
+            { id: "KL_1515", cislo: "808427", smer: "Krásnohorská Dlhá Lúka, kríž ➔ Lipovník, Jednota", start: "15:15", trasa: trasaKrizLipovnik, min: minutyKrizLipovnik },
+            { id: "LK_1540", cislo: "808427", smer: "Lipovník, Jednota ➔ Krásnohorská Dlhá Lúka, kríž", start: "15:40", trasa: [...trasaKrizLipovnik].reverse(), min: minutyKrizLipovnik },
+            
+            { id: "KL_1645", cislo: "808427", smer: "Krásnohorská Dlhá Lúka, kríž ➔ Lipovník, Jednota", start: "16:45", trasa: trasaKrizLipovnik, min: minutyKrizLipovnik },
+            { id: "LK_1710", cislo: "808427", smer: "Lipovník, Jednota ➔ Krásnohorská Dlhá Lúka, kríž", start: "17:10", trasa: [...trasaKrizLipovnik].reverse(), min: minutyKrizLipovnik },
+            
+            { id: "KL_1815", cislo: "808427", smer: "Krásnohorská Dlhá Lúka, kríž ➔ Lipovník, Jednota", start: "18:15", trasa: trasaKrizLipovnik, min: minutyKrizLipovnik },
+            { id: "LK_1840", cislo: "808427", smer: "Lipovník, Jednota ➔ Krásnohorská Dlhá Lúka, kríž", start: "18:40", trasa: [...trasaKrizLipovnik].reverse(), min: minutyKrizLipovnik }
         ];
 
         function vypocitajZostavajuciCas(odchodStr) {
@@ -369,13 +374,11 @@
                         busIcon.style.top = (22.5 + finalnaPozicia) + "px";
                     }
 
-                    // OPRAVENÁ LOGIKA SVIETENIA BODOV: Bod sa rozsvieti až vtedy, keď piktogram autobusu reálne dorazí na danú zastávku
                     spoj.min.forEach((minOffset, i) => {
                         const dot = document.getElementById(`dot-${spoj.id}-${i}`);
                         if (dot && items[i]) {
                             const top0 = items[0].offsetTop;
                             const topCurrentDot = items[i].offsetTop - top0;
-                            // Porovnanie aktuálnej pozície autobusu (vrátane offsetu stredu) s pozíciou bodu zastávky
                             if (finalnaPozicia >= topCurrentDot) {
                                 dot.classList.add('reached');
                             } else {
