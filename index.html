@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SAD Jovice</title>
+    <!-- Pre offline fungovanie si stiahni leaflet.css a leaflet.js lokálne do zložky s projektom -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root { --primary: #FFD700; --secondary: #004a99; --bg: #e9ecef; --card: #ffffff; --text: #212529; --success: #28a745; --danger: #dc3545; }
@@ -62,11 +63,13 @@
         .spz-tag { background: white; padding: 4px 10px; border: 2px solid #333; border-radius: 5px; font-family: monospace; font-weight: bold; }
         
         #map-container { background: var(--card); padding: 10px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #ddd; display: none; }
-        #map { height: 400px; width: 100%; border-radius: 8px; }
+        #map { height: 450px; width: 100%; border-radius: 8px; }
         
         .admin-panel { background: #333; color: white; padding: 20px; border-radius: 12px; margin-top: 30px; }
         .btn { background: var(--primary); border: none; padding: 12px; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 10px; font-size: 16px; }
         .btn-secondary { background: var(--secondary); color: white; }
+        
+        .map-bus-icon { font-size: 22px; text-align: center; line-height: 1; }
     </style>
 </head>
 <body>
@@ -85,11 +88,11 @@
             <button class="btn" style="margin-top:0; width: auto; padding: 8px 12px; font-size: 12px;" onclick="clearTime()">ZRUŠIŤ ČAS</button>
         </div>
         <button class="btn" onclick="executeSearch()">VYHĽADAŤ SPOJENIE</button>
-        <button class="btn btn-secondary" onclick="toggleMap()">ZOBRAZIŤ MAPU TRÁS</button>
+        <button class="btn btn-secondary" onclick="toggleMap()">ZOBRAZIŤ LIVE MAPU</button>
     </div>
 
     <div id="map-container">
-        <h3 style="margin-top:0;">Mapa SAD Jovice</h3>
+        <h3 style="margin-top:0;">Živá mapa dopravy (Okres Rožňava)</h3>
         <div id="map"></div>
     </div>
 
@@ -147,18 +150,16 @@
         ];
         const minutyDialkova_spat = [0, 3, 6, 8, 10, 15, 17, 19, 21, 24, 25, 26, 27, 28, 29, 31, 33, 34, 35, 36];
 
-        // ZÁKLADNÉ POLIA PRE OKRUŽNÚ LINKU
         const okruznaTrasaStandard = [
-            "Jovice, aut. st.", "Jovice, OcÚ", "Jovice, č. d. 25", "Jovice, Nové sídlisko Mladosť", 
+            "Jovice, aut. st.", "Jovice, OcÚ", "Jovice, č. d. 25", "Jovice, nová sídlisko mladosť", 
             "Jovice, západ", "Jovice, kostol", "Jovice, poľný smrek", "Jovice, ranč", 
             "Jovice, Mlynská ul.", "Jovice, Byster č.d. 391", "Jovice, Byster", "Jovice, Hradná ul. otočka", 
             "Jovice, Hradná ul. rázc.", "Jovice, Hradná ul. most", "Jovice, aut. st."
         ];
         const okruznaMinutyStandard = [0, 0, 1, 2, 3, 4, 5, 6, 7, 7, 8, 9, 9, 9, 10];
 
-        // ROZŠÍRENÁ VERZIA PRE SPOJE O 15:55 A 18:30
         const okruznaTrasaRozsirena = [
-            "Jovice, aut. st.", "Jovice, OcÚ", "Jovice, č. d. 25", "Jovice, Nové sídlisko Mladosť", 
+            "Jovice, aut. st.", "Jovice, OcÚ", "Jovice, č. d. 25", "Jovice, nová sídlisko mladosť", 
             "Jovice, západ", "Jovice, kostol", "Jovice, poľný smrek", "Jovice, ranč", 
             "Jovice, Mlynská ul.", "Jovice, Byster č.d. 391", "Jovice, Byster", "Jovice, Hradná ul. otočka", 
             "Jovice, Hradná ul. rázc.", "Jovice, Hradná ul. most", "Jovice, aut. st.", 
@@ -166,7 +167,6 @@
         ];
         const okruznaMinutyRozsirena = [0, 0, 1, 2, 3, 4, 5, 6, 7, 7, 8, 9, 9, 9, 10, 11, 12];
 
-        // TRASA A MINÚTY (Krásnohorská Dlhá Lúka, kríž ➔ Lipovník, Jednota)
         const trasaKrizLipovnik = [
             "Krásnohorská Dlhá Lúka, kríž", "Krásnohorská Dlhá Lúka, Jednota", 
             "Krásnohorská Dlhá Lúka, most", "Krásnohorská Dlhá Lúka, cintorín", 
@@ -201,17 +201,16 @@
             { id: "D1", cislo: "808433", smer: "Krásnohorská Dlhá Lúka, most ➔ Rožňava, AS", start: "14:00", trasa: zastavkyDialkova_tam, min: minutyDialkova_tam, dialkova: true },
             { id: "D2", cislo: "808433", smer: "Rožňava, AS ➔ Krásnohorská Dlhá Lúka, most", start: "15:30", trasa: zastavkyDialkova_spat, min: minutyDialkova_spat, dialkova: true },
 
-            { id: "OKR_1310", cislo: "MHD1", smer: "Jovice aut. st. ➔ Jovice aut. st.", start: "13:10", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
-            { id: "OKR_1410", cislo: "MHD1", smer: "Jovice aut. st. ➔ Jovice aut. st.", start: "14:10", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
-            { id: "OKR_1500", cislo: "MHD1", smer: "Jovice aut. st. ➔ Jovice aut. st.", start: "15:00", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
-            { id: "OKR_1555", cislo: "MHD1", smer: "Jovice aut. st. ➔ Jovice aut. st.", start: "15:55", trasa: okruznaTrasaRozsirena, min: okruznaMinutyRozsirena },
-            { id: "OKR_1620", cislo: "MHD1", smer: "Jovice aut. st. ➔ Jovice aut. st.", start: "16:20", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
-            { id: "OKR_1715", cislo: "MHD1", smer: "Jovice aut. st. ➔ Jovice aut. st.", start: "17:15", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
-            { id: "OKR_1800", cislo: "MHD1", smer: "Jovice aut. st. ➔ Jovice aut. st.", start: "18:00", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
-            { id: "OKR_1830", cislo: "MHD1", smer: "Jovice aut. st. ➔ Jovice aut. st.", start: "18:30", trasa: okruznaTrasaRozsirena, min: okruznaMinutyRozsirena },
-            { id: "OKR_1900", cislo: "MHD1", smer: "Jovice aut. st. ➔ Jovice aut. st.", start: "19:00", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
+            { id: "OKR_1310", cislo: "MHD1", smer: "Jovice (Okružná) ➔ Jovice", start: "13:10", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
+            { id: "OKR_1410", cislo: "MHD1", smer: "Jovice (Okružná) ➔ Jovice", start: "14:10", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
+            { id: "OKR_1500", cislo: "MHD1", smer: "Jovice (Okružná) ➔ Jovice", start: "15:00", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
+            { id: "OKR_1555", cislo: "MHD1", smer: "Jovice (Okružná - rozšírená) ➔ Jovice", start: "15:55", trasa: okruznaTrasaRozsirena, min: okruznaMinutyRozsirena },
+            { id: "OKR_1620", cislo: "MHD1", smer: "Jovice (Okružná) ➔ Jovice", start: "16:20", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
+            { id: "OKR_1715", cislo: "MHD1", smer: "Jovice (Okružná) ➔ Jovice", start: "17:15", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
+            { id: "OKR_1800", cislo: "MHD1", smer: "Jovice (Okružná) ➔ Jovice", start: "18:00", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
+            { id: "OKR_1830", cislo: "MHD1", smer: "Jovice (Okružná - rozšírená) ➔ Jovice", start: "18:30", trasa: okruznaTrasaRozsirena, min: okruznaMinutyRozsirena },
+            { id: "OKR_1900", cislo: "MHD1", smer: "Jovice (Okružná) ➔ Jovice", start: "19:00", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
 
-            // SPOJE Z KRÁSNOHORSKEJ DLHEJ LÚKY DO LIPOVNÍKA S 5-MINÚTOVOU PRESTÁVKOU V LIPOVNÍKU
             { id: "KL_1515", cislo: "808427", smer: "Krásnohorská Dlhá Lúka, kríž ➔ Lipovník, Jednota", start: "15:15", trasa: trasaKrizLipovnik, min: minutyKrizLipovnik },
             { id: "LK_1540", cislo: "808427", smer: "Lipovník, Jednota ➔ Krásnohorská Dlhá Lúka, kríž", start: "15:40", trasa: [...trasaKrizLipovnik].reverse(), min: minutyKrizLipovnik },
             
@@ -222,17 +221,60 @@
             { id: "LK_1840", cislo: "808427", smer: "Lipovník, Jednota ➔ Krásnohorská Dlhá Lúka, kríž", start: "18:40", trasa: [...trasaKrizLipovnik].reverse(), min: minutyKrizLipovnik }
         ];
 
-        function vypocitajZostavajuciCas(odchodStr) {
+        // DATABÁZA SÚRADNÍC PRE OFFLINE MAPU (Cestná sieť)
+        const nodeGPS = {
+            "Rožňava, AS": [48.6586, 20.5332],
+            "Rožňava, Šafárikova ulica": [48.6550, 20.5335],
+            "Rožňava, úrad práce": [48.6515, 20.5338],
+            "Rožňava, Kaufland": [48.6480, 20.5342],
+            "Rožňava, eurobus": [48.6445, 20.5350],
+            "Rožňava, železničné priecestie": [48.6410, 20.5370],
+            "Brzotín, Badinotti": [48.6380, 20.5420],
+            "Jovice, CWT Metal": [48.6368, 20.5480],
+            "Jovice, rozvodňa": [48.6362, 20.5520],
+            "Jovice, č.d. 25": [48.6360, 20.5550],
+            "Jovice, aut. stanica": [48.6358, 20.5585],
+            "Jovice, aut. st.": [48.6358, 20.5585],
+            "Jovice, Jednota": [48.6355, 20.5590],
+            "Jovice, Hradná ul., most": [48.6345, 20.5605],
+            "Jovice, Hradná ul., odbočka": [48.6335, 20.5620],
+            "Jovice, futbalové ihrisko": [48.6315, 20.5650],
+            "Pole, č. 1": [48.6285, 20.5700],
+            "Pole, č. 2": [48.6245, 20.5760],
+            "Krásnohorská Dlhá Lúka, západ": [48.6210, 20.5810],
+            "Krásnohorská Dlhá Lúka, kríž": [48.6185, 20.5842],
+            "Krásnohorská Dlhá Lúka, Jednota": [48.6180, 20.5870],
+            "Krásnohorská Dlhá Lúka, most": [48.6178, 20.5900],
+            "Krásnohorská Dlhá Lúka, cintorín": [48.6182, 20.5950],
+            "Lipovník, zákruta": [48.6210, 20.6080],
+            "Lipovník, železničný most": [48.6230, 20.6140],
+            "Lipovník, železničná stanica": [48.6242, 20.6180],
+            "Lipovník, č. d. 1": [48.6250, 20.6200],
+            "Lipovník, obchádzka": [48.6255, 20.6215],
+            "Lipovník, Jednota": [48.6260, 20.6230]
+        };
+
+        // OPRAVENÁ FUNKCIA VOĽBY ČASU DOCHÁDZANIA
+        function vypocitajZostavajuciCas(spoj) {
             const teraz = new Date();
-            const [h, m] = odchodStr.split(':').map(Number);
+            const [h, m] = spoj.start.split(':').map(Number);
             const odchod = new Date();
             odchod.setHours(h, m, 0, 0);
-            const diff = odchod - teraz;
-            if (diff < -600000) return null;
-            if (diff <= 0 && diff >= -600000) return "SPOJ JE NA CESTE"; 
-            const minuty = Math.floor(diff / 60000);
-            if (minuty < 60) return `ODCHOD O ${minuty} MIN`;
-            return `ODCHOD O ${Math.floor(minuty / 60)}h ${minuty % 60}m`;
+
+            const trvanieSpolu = spoj.min[spoj.min.length - 1];
+            const prichod = new Date(odchod.getTime() + trvanieSpolu * 60000);
+
+            const diffOdchod = odchod - teraz;
+
+            if (teraz >= odchod && teraz <= prichod) {
+                return "SPOJ JE NA CESTE"; 
+            }
+            if (diffOdchod > 0) {
+                const minuty = Math.floor(diffOdchod / 60000);
+                if (minuty < 60) return `ODCHOD O ${minuty} MIN`;
+                return `ODCHOD O ${Math.floor(minuty / 60)}h ${minuty % 60}m`;
+            }
+            return null;
         }
 
         function pridajCas(start, plusMinuty) {
@@ -306,8 +348,10 @@
                 let opt = `<option value="${spoj.id}">${spoj.cislo} (${spoj.start})</option>`;
                 select.innerHTML += opt; statusSelect.innerHTML += opt;
             });
-            setInterval(aktualizujLivePohyb, 500);
         }
+
+        // AKTUÁLNY LIVE POHYB V LISTE AJ NA MAPOVOM PODKLADE
+        let mapBusMarkers = {};
 
         function aktualizujLivePohyb() {
             const teraz = new Date();
@@ -315,58 +359,36 @@
             spoje.forEach(spoj => {
                 const elTimer = document.getElementById('countdown-' + spoj.id);
                 if (elTimer) {
-                    const zostava = vypocitajZostavajuciCas(spoj.start);
+                    const zostava = vypocitajZostavajuciCas(spoj);
                     elTimer.innerText = zostava || "";
                     elTimer.style.display = zostava ? "inline-block" : "none";
                 }
 
                 const [h, m] = spoj.start.split(':').map(Number);
-                const startD = new Date(); 
-                startD.setHours(h, m, 0, 0);
-                
+                const startD = new Date(); startD.setHours(h, m, 0, 0);
+                const lastIdx = spoj.min.length - 1;
+                const maxMinut = spoj.min[lastIdx];
+                const endD = new Date(startD.getTime() + maxMinut * 60000);
+
                 const busIcon = document.getElementById(`live-bus-${spoj.id}`);
                 const progressLine = document.getElementById(`progress-${spoj.id}`);
 
-                if (teraz.getTime() >= startD.getTime()) {
+                if (teraz >= startD && teraz <= endD) {
                     let ubehloMinuty = (teraz.getTime() - startD.getTime()) / 60000;
-                    let lastIdx = spoj.min.length - 1;
-                    let maxMinut = spoj.min[lastIdx];
 
-                    const card = busIcon ? busIcon.closest('.bus-card') : null;
-                    const items = card ? card.querySelectorAll('.station-item') : [];
-
-                    let finalnaPozicia = 0;
-
-                    if (items.length > 0 && items.length === spoj.trasa.length) {
-                        const top0 = items[0].offsetTop;
-                        const topLast = items[lastIdx].offsetTop;
-                        const maxOffset = topLast - top0;
-
-                        if (ubehloMinuty >= maxMinut) {
-                            finalnaPozicia = maxOffset;
-                        } else {
-                            let aktualnyIndex = 0;
-                            for (let i = 0; i < lastIdx; i++) {
-                                if (ubehloMinuty >= spoj.min[i]) {
-                                    aktualnyIndex = i;
-                                }
-                            }
-
-                            let casOdZastavky = ubehloMinuty - spoj.min[aktualnyIndex];
-                            let trvanieUseku = spoj.min[aktualnyIndex + 1] - spoj.min[aktualnyIndex];
-                            let percentoUseku = trvanieUseku > 0 ? (casOdZastavky / trvanieUseku) : 0;
-                            percentoUseku = Math.max(0, Math.min(1, percentoUseku));
-
-                            const topCurrent = items[aktualnyIndex].offsetTop - top0;
-                            const topNext = items[aktualnyIndex + 1].offsetTop - top0;
-                            finalnaPozicia = topCurrent + (topNext - topCurrent) * percentoUseku;
-                        }
-
-                        finalnaPozicia = Math.min(finalnaPozicia, maxOffset);
-                    } else {
-                        let itemHeight = 45;
-                        finalnaPozicia = Math.min(lastIdx * itemHeight, (ubehloMinuty / maxMinut) * (lastIdx * itemHeight));
+                    let idx = 0;
+                    for (let i = 0; i < lastIdx; i++) {
+                        if (ubehloMinuty >= spoj.min[i]) idx = i;
                     }
+
+                    let casOdZastavky = ubehloMinuty - spoj.min[idx];
+                    let trvanieUseku = spoj.min[idx + 1] - spoj.min[idx];
+                    let ratio = trvanieUseku > 0 ? (casOdZastavky / trvanieUseku) : 0;
+                    ratio = Math.max(0, Math.min(1, ratio));
+
+                    // Pohyb v karte
+                    let itemHeight = 45;
+                    let finalnaPozicia = (idx * itemHeight) + (ratio * itemHeight);
 
                     if (progressLine) progressLine.style.height = finalnaPozicia + "px";
                     if (busIcon) {
@@ -376,25 +398,55 @@
 
                     spoj.min.forEach((minOffset, i) => {
                         const dot = document.getElementById(`dot-${spoj.id}-${i}`);
-                        if (dot && items[i]) {
-                            const top0 = items[0].offsetTop;
-                            const topCurrentDot = items[i].offsetTop - top0;
-                            if (finalnaPozicia >= topCurrentDot) {
-                                dot.classList.add('reached');
-                            } else {
-                                dot.classList.remove('reached');
-                            }
+                        if (dot) {
+                            if (finalnaPozicia >= (i * itemHeight)) dot.classList.add('reached');
+                            else dot.classList.remove('reached');
                         }
                     });
+
+                    // POHYB NA LIVE MAPÁCH
+                    if (leafletMap) {
+                        let zA = spoj.trasa[idx];
+                        let zB = spoj.trasa[idx + 1];
+                        let gA = nodeGPS[zA];
+                        let gB = nodeGPS[zB];
+
+                        if (gA && gB) {
+                            let curLat = gA[0] + (gB[0] - gA[0]) * ratio;
+                            let curLng = gA[1] + (gB[1] - gA[1]) * ratio;
+
+                            let spzTag = document.getElementById('tag-' + spoj.id);
+                            let spzText = spzTag ? spzTag.innerText : 'RV-JOVICE';
+
+                            if (!mapBusMarkers[spoj.id]) {
+                                let customIcon = L.divIcon({
+                                    className: 'map-bus-icon',
+                                    html: '🚌',
+                                    iconSize: [25, 25]
+                                });
+                                mapBusMarkers[spoj.id] = L.marker([curLat, curLng], {icon: customIcon}).addTo(leafletMap);
+                                mapBusMarkers[spoj.id].bindPopup(`
+                                    <b>Linka ${spoj.cislo}</b><br>
+                                    ${spoj.smer}<br>
+                                    ŠPZ: <b>${spzText}</b><br>
+                                    Dopravca: SAD Jovice
+                                `);
+                            } else {
+                                mapBusMarkers[spoj.id].setLatLng([curLat, curLng]);
+                            }
+                        }
+                    }
+
+                } else {
+                    if (busIcon) busIcon.style.display = "none";
+                    if (progressLine) progressLine.style.height = "0px";
+                    if (leafletMap && mapBusMarkers[spoj.id]) {
+                        leafletMap.removeLayer(mapBusMarkers[spoj.id]);
+                        delete mapBusMarkers[spoj.id];
+                    }
                 }
             });
         }
-
-        document.addEventListener('visibilitychange', function() {
-            if (!document.hidden) {
-                aktualizujLivePohyb();
-            }
-        });
 
         setInterval(aktualizujLivePohyb, 1000);
 
@@ -466,21 +518,56 @@
             const mapDiv = document.getElementById('map-container');
             mapDiv.style.display = mapDiv.style.display === 'block' ? 'none' : 'block';
             if (!leafletMap && mapDiv.style.display === 'block') {
-                leafletMap = L.map('map').setView([48.635, 20.570], 13);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(leafletMap);
+                // Stred zobrazenia: Okres Rožňava
+                leafletMap = L.map('map').setView([48.632, 20.575], 12);
+                
+                // Dlaždice Leaflet
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 18,
+                    attribution: '© OpenStreetMap'
+                }).addTo(leafletMap);
 
-                const coords = {
-                    "Jovice": [48.636, 20.559],
-                    "Dlhá Lúka": [48.618, 20.584],
-                    "Lipovník": [48.625, 20.622],
-                    "Rožňava": [48.659, 20.533]
-                };
-                const trasyMapy = [
-                    { pts: [coords["Jovice"], coords["Dlhá Lúka"], coords["Lipovník"]], color: '#004a99' },
-                    { pts: [coords["Dlhá Lúka"], coords["Jovice"], coords["Rožňava"]], color: '#dc3545' }
+                // Vykreslenie hlavnej cestnej siete ako vektorové čiary po cestách
+                const hlavnaTrasa = [
+                    nodeGPS["Rožňava, AS"],
+                    nodeGPS["Rožňava, Šafárikova ulica"],
+                    nodeGPS["Rožňava, úrad práce"],
+                    nodeGPS["Rožňava, Kaufland"],
+                    nodeGPS["Rožňava, eurobus"],
+                    nodeGPS["Rožňava, železničné priecestie"],
+                    nodeGPS["Brzotín, Badinotti"],
+                    nodeGPS["Jovice, CWT Metal"],
+                    nodeGPS["Jovice, rozvodňa"],
+                    nodeGPS["Jovice, č.d. 25"],
+                    nodeGPS["Jovice, aut. stanica"],
+                    nodeGPS["Jovice, Hradná ul., most"],
+                    nodeGPS["Jovice, Hradná ul., odbočka"],
+                    nodeGPS["Jovice, futbalové ihrisko"],
+                    nodeGPS["Pole, č. 1"],
+                    nodeGPS["Pole, č. 2"],
+                    nodeGPS["Krásnohorská Dlhá Lúka, západ"],
+                    nodeGPS["Krásnohorská Dlhá Lúka, kríž"],
+                    nodeGPS["Krásnohorská Dlhá Lúka, Jednota"],
+                    nodeGPS["Krásnohorská Dlhá Lúka, most"],
+                    nodeGPS["Krásnohorská Dlhá Lúka, cintorín"],
+                    nodeGPS["Lipovník, zákruta"],
+                    nodeGPS["Lipovník, železničný most"],
+                    nodeGPS["Lipovník, železničná stanica"],
+                    nodeGPS["Lipovník, č. d. 1"],
+                    nodeGPS["Lipovník, obchádzka"],
+                    nodeGPS["Lipovník, Jednota"]
                 ];
-                trasyMapy.forEach(r => {
-                    L.polyline(r.pts, {color: r.color, weight: 5, opacity: 1}).addTo(leafletMap);
+
+                L.polyline(hlavnaTrasa, {color: '#004a99', weight: 5, opacity: 0.7}).addTo(leafletMap);
+
+                // Pridanie značiek pre zastávky
+                Object.keys(nodeGPS).forEach(stName => {
+                    L.circleMarker(nodeGPS[stName], {
+                        radius: 4,
+                        color: '#333',
+                        fillColor: '#fff',
+                        fillOpacity: 1
+                    }).addTo(leafletMap).bindPopup(stName);
                 });
             }
         }
