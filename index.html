@@ -309,22 +309,22 @@
         function vykresliLiveMapu(mapaObjekt) {
             if (!mapaObjekt) return;
 
-            // A) Vykreslenie súvislej modrej trasy po ceste
+// A) Vykreslenie súvislej modrej trasy po ceste
             var modraTrasa = L.polyline(presnaTrasaCesty, {
-                color: '#004a99',  // Jasná modrá farba
-                weight: 5,         // Hrúbka čiary
+                color: '#004a99',
+                weight: 5,
                 opacity: 0.9,
                 lineCap: 'round',
                 lineJoin: 'round'
             }).addTo(mapaObjekt);
 
-            // B) Vykreslenie bielych bodiek s modrým okrajom na presných pozíciách zastávok
+            // B) Vykreslenie zastávok
             Object.keys(nodeGPS).forEach(function(nazovZastavky) {
                 var souradnice = nodeGPS[nazovZastavky];
                 L.circleMarker(souradnice, {
                     radius: 5,
-                    fillColor: '#ffffff', // Biela výplň
-                    color: '#003399',     // Tmavo-modrý okraj
+                    fillColor: '#ffffff',
+                    color: '#003399',
                     weight: 2,
                     opacity: 1,
                     fillOpacity: 1
@@ -335,6 +335,7 @@
             mapaObjekt.fitBounds(modraTrasa.getBounds());
         }
 
+        // Pomocné funkcie pre prácu s časom
         function vypocitajZostavajuciCas(spoj) {
             const teraz = new Date();
             const [h, m] = spoj.start.split(':').map(Number);
@@ -351,29 +352,42 @@
             }
             if (diffOdchod > 0) {
                 const minuty = Math.floor(diffOdchod / 60000);
-                if (minuty < 60) return `ODCHOD O ${minuty} MIN`;
-                return `ODCHOD O ${Math.floor(minuty / 60)}h ${minuty % 60}m`;
+                return minuty < 60 ? `ODCHOD O ${minuty} MIN` : `ODCHOD O ${Math.floor(minuty / 60)}h ${minuty % 60}m`;
             }
             return null;
         }
 
         function pridajCas(start, plusMinuty) {
             let [h, m] = start.split(':').map(Number);
-            let d = new Date(); d.setHours(h, m + plusMinuty);
+            let d = new Date(); 
+            d.setHours(h, m + plusMinuty);
             return d.getHours().toString().padStart(2, '0') + ":" + d.getMinutes().toString().padStart(2, '0');
         }
+
+        // Cache pre DOM elementy pre zvýšenie výkonu
+        const domCache = {
+            cards: {},
+            timers: {},
+            buses: {},
+            progressLines: {},
+            dots: {},
+            statusTags: {},
+            spzTags: {}
+        };
 
         function vykresliLinky() {
             const container = document.getElementById('links-container');
             const select = document.getElementById('lineSelect');
             const statusSelect = document.getElementById('statusLineSelect');
-            container.innerHTML = ""; select.innerHTML = ""; statusSelect.innerHTML = "";
+            
+            container.innerHTML = "";
+            let optionsHTML = "";
             
             spoje.forEach(spojData => {
                 let spoj = { ...spojData, trasa: [], min: [] };
                 let ideOdDedin = spojData.smer.startsWith("Lipovník") || spojData.smer.startsWith("Krásnohorská");
                 
-                for(let i=0; i<spojData.trasa.length; i++) {
+                for(let i = 0; i < spojData.trasa.length; i++) {
                     if (ideOdDedin && spojData.trasa[i] === "Jovice, Hradná ul., odbočka") continue;
                     spoj.trasa.push(spojData.trasa[i]);
                     spoj.min.push(spojData.min[i]);
@@ -424,20 +438,33 @@
                             <span class="spz-tag" id="tag-${spoj.id}">RV-JOVICE</span>
                         </div>
                     </div>`;
+
                 container.appendChild(card);
-                let opt = `<option value="${spoj.id}">${spoj.cislo} (${spoj.start})</option>`;
-                select.innerHTML += opt; statusSelect.innerHTML += opt;
+                optionsHTML += `<option value="${spoj.id}">${spoj.cislo} (${spoj.start})</option>`;
+            });
+
+            select.innerHTML = optionsHTML;
+            statusSelect.innerHTML = optionsHTML;
+
+            // Načítanie elementov do cache po ich vytvorení
+            spoje.forEach(spoj => {
+                domCache.timers[spoj.id] = document.getElementById(`countdown-${spoj.id}`);
+                domCache.buses[spoj.id] = document.getElementById(`live-bus-${spoj.id}`);
+                domCache.progressLines[spoj.id] = document.getElementById(`progress-${spoj.id}`);
+                domCache.statusTags[spoj.id] = document.getElementById(`status-${spoj.id}`);
+                domCache.spzTags[spoj.id] = document.getElementById(`tag-${spoj.id}`);
+                domCache.dots[spoj.id] = spoj.min.map((_, i) => document.getElementById(`dot-${spoj.id}-${i}`));
             });
         }
 
-        // AKTUÁLNY LIVE POHYB V LISTE AJ NA MAPOVOM PODKLADE
+        // Správa live pohybov
         let mapBusMarkers = {};
 
         function aktualizujLivePohyb() {
             const teraz = new Date();
             
             spoje.forEach(spoj => {
-                const elTimer = document.getElementById('countdown-' + spoj.id);
+                const elTimer = domCache.timers[spoj.id];
                 if (elTimer) {
                     const zostava = vypocitajZostavajuciCas(spoj);
                     elTimer.innerText = zostava || "";
@@ -445,13 +472,15 @@
                 }
 
                 const [h, m] = spoj.start.split(':').map(Number);
-                const startD = new Date(); startD.setHours(h, m, 0, 0);
+                const startD = new Date(); 
+                startD.setHours(h, m, 0, 0);
+                
                 const lastIdx = spoj.min.length - 1;
                 const maxMinut = spoj.min[lastIdx];
                 const endD = new Date(startD.getTime() + maxMinut * 60000);
 
-                const busIcon = document.getElementById(`live-bus-${spoj.id}`);
-                const progressLine = document.getElementById(`progress-${spoj.id}`);
+                const busIcon = domCache.buses[spoj.id];
+                const progressLine = domCache.progressLines[spoj.id];
 
                 if (teraz >= startD && teraz <= endD) {
                     let ubehloMinuty = (teraz.getTime() - startD.getTime()) / 60000;
@@ -476,15 +505,14 @@
                         busIcon.style.top = (22.5 + finalnaPozicia) + "px";
                     }
 
-                    spoj.min.forEach((minOffset, i) => {
-                        const dot = document.getElementById(`dot-${spoj.id}-${i}`);
+                    spoj.min.forEach((_, i) => {
+                        const dot = domCache.dots[spoj.id]?.[i];
                         if (dot) {
-                            if (finalnaPozicia >= (i * itemHeight)) dot.classList.add('reached');
-                            else dot.classList.remove('reached');
+                            dot.classList.toggle('reached', finalnaPozicia >= (i * itemHeight));
                         }
                     });
 
-                    // POHYB NA LIVE MAPÁCH
+                    // Pohyb na mape
                     if (leafletMap) {
                         let zA = spoj.trasa[idx];
                         let zB = spoj.trasa[idx + 1];
@@ -494,9 +522,7 @@
                         if (gA && gB) {
                             let curLat = gA[0] + (gB[0] - gA[0]) * ratio;
                             let curLng = gA[1] + (gB[1] - gA[1]) * ratio;
-
-                            let spzTag = document.getElementById('tag-' + spoj.id);
-                            let spzText = spzTag ? spzTag.innerText : 'RV-JOVICE';
+                            let spzText = domCache.spzTags[spoj.id]?.innerText || 'RV-JOVICE';
 
                             if (!mapBusMarkers[spoj.id]) {
                                 let customIcon = L.divIcon({
@@ -530,10 +556,11 @@
 
         setInterval(aktualizujLivePohyb, 1000);
 
+        // Ovládacie funkcie pre dispečer a vyhľadávanie
         function updateLiveStatus() {
             const id = document.getElementById('statusLineSelect').value;
             const val = document.getElementById('statusValueSelect').value;
-            const tag = document.getElementById('status-' + id);
+            const tag = domCache.statusTags[id];
             if(tag) {
                 tag.className = "status-tag " + (val === 'ontime' ? 'status-ontime' : 'status-delayed');
                 tag.innerText = val === 'ontime' ? 'NAČAS' : (val === 'delayed' ? 'MEŠKANIE' : 'ZRUŠENÉ');
@@ -560,7 +587,7 @@
         function updateSpzOnly() {
             const spz = document.getElementById('newSpz').value;
             const id = document.getElementById('lineSelect').value;
-            const tag = document.getElementById('tag-' + id);
+            const tag = domCache.spzTags[id];
             if (spz && tag) { 
                 tag.innerText = spz; 
                 alert("ŠPZ bola úspešne zmenená.");
@@ -572,10 +599,16 @@
             let list = document.getElementById("autocomplete-list");
             list.innerHTML = "";
             if (!input) return;
+            
             [...new Set(spoje.flatMap(s => s.trasa))].forEach(z => {
                 if (z.toLowerCase().includes(input)) {
-                    let div = document.createElement("div"); div.innerText = z;
-                    div.onclick = () => { document.getElementById("searchInput").value = z; list.innerHTML = ""; executeSearch(); };
+                    let div = document.createElement("div"); 
+                    div.innerText = z;
+                    div.onclick = () => { 
+                        document.getElementById("searchInput").value = z; 
+                        list.innerHTML = ""; 
+                        executeSearch(); 
+                    };
                     list.appendChild(div);
                 }
             });
@@ -591,7 +624,10 @@
             });
         }
 
-        function clearTime() { document.getElementById("timeInput").value = ""; }
+        function clearTime() { 
+            document.getElementById("timeInput").value = ""; 
+            executeSearch();
+        }
 
         let leafletMap;
         function toggleMap() {
@@ -615,6 +651,7 @@
             }
         }
 
+        // Inicializácia pri načítaní
         vykresliLinky();
     </script>
 </body>
