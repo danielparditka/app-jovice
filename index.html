@@ -221,38 +221,103 @@
             { id: "LK_1840", cislo: "808427", smer: "Lipovník, Jednota ➔ Krásnohorská Dlhá Lúka, kríž", start: "18:40", trasa: [...trasaKrizLipovnik].reverse(), min: minutyKrizLipovnik }
         ];
 
-// DATABÁZA SÚRADNÍC PRE OFFLINE MAPU (Cestná sieť)
-        const nodeGPS = {
-            "Rožňava, AS": [48.6586, 20.5332],
-            "Rožňava, Šafárikova ulica": [48.6550, 20.5335],
-            "Rožňava, úrad práce": [48.6515, 20.5338],
-            "Rožňava, Kaufland": [48.6480, 20.5342],
-            "Rožňava, eurobus": [48.6445, 20.5350],
-            "Rožňava, železničné priecestie": [48.6410, 20.5370],
-            "Brzotín, Badinotti": [48.6380, 20.5420],
-            "Jovice, CWT Metal": [48.6368, 20.5480],
-            "Jovice, rozvodňa": [48.6362, 20.5520],
-            "Jovice, č.d. 25": [48.6360, 20.5550],
-            "Jovice, aut. stanica": [48.6358, 20.5585],
-            "Jovice, aut. st.": [48.6358, 20.5585],
-            "Jovice, Jednota": [48.6355, 20.5590],
-            "Jovice, Hradná ul., most": [48.6345, 20.5605],
-            "Jovice, Hradná ul., odbočka": [48.6335, 20.5620],
-            "Jovice, futbalové ihrisko": [48.6315, 20.5650],
-            "Pole, č. 1": [48.6285, 20.5700],
-            "Pole, č. 2": [48.6245, 20.5760],
-            "Krásnohorská Dlhá Lúka, západ": [48.6210, 20.5810],
-            "Krásnohorská Dlhá Lúka, kríž": [48.6185, 20.5842],
-            "Krásnohorská Dlhá Lúka, Jednota": [48.6180, 20.5870],
-            "Krásnohorská Dlhá Lúka, most": [48.6178, 20.5900],
-            "Krásnohorská Dlhá Lúka, cintorín": [48.6182, 20.5950],
-            "Lipovník, zákruta": [48.6210, 20.6080],
-            "Lipovník, železničný most": [48.6230, 20.6140],
-            "Lipovník, železničná stanica": [48.6242, 20.6180],
-            "Lipovník, č. d. 1": [48.6250, 20.6200],
-            "Lipovník, obchádzka": [48.6255, 20.6215],
-            "Lipovník, Jednota": [48.6260, 20.6230]
-        };
+// 1. PRESNÁ DATABÁZA VŠETKÝCH ZASTÁVOK Z CESTOVNÉHO PORIADKU (Súradnice presne na ceste)
+const nodeGPS = {
+    "Rožňava, AS": [48.660398, 20.534842],
+    "Rožňava, Šafárikova ulica": [48.654820, 20.532850],
+    "Rožňava, úrad práce": [48.651200, 20.531800],
+    "Rožňava, Kaufland": [48.647500, 20.530200],
+    "Rožňava, eurobus": [48.642100, 20.528300],
+    "Rožňava, železničné priecestie": [48.638500, 20.527200],
+    "Brzotín, Badinotti": [48.636691, 20.526914],
+    "Jovice, CWT Metal": [48.634200, 20.531500],
+    "Jovice, rozvodňa": [48.632800, 20.539000],
+    "Jovice, č.d. 25": [48.632300, 20.544500],
+    "Jovice, aut. stanica": [48.631556, 20.547895], // Dole pri A. Chazára
+    "Jovice, aut. st.": [48.631556, 20.547895],
+    "Jovice, Jednota": [48.630679, 20.552469],     // Hradná ul.
+    "Jovice, Hradná ul., most": [48.630100, 20.555200],
+    "Jovice, Hradná ul., odbočka": [48.629400, 20.559500],
+    "Jovice, futbalové ihrisko": [48.628500, 20.564200],
+    "Pole, č. 1": [48.627800, 20.570000],
+    "Pole, č. 2": [48.627400, 20.576500],
+    "Krásnohorská Dlhá Lúka, západ": [48.627250, 20.580100],
+    "Krásnohorská Dlhá Lúka, kríž": [48.627143, 20.582467], // Prvá križovatka od Jovíc
+    "Krásnohorská Dlhá Lúka, Jednota": [48.626800, 20.585500],
+    "Krásnohorská Dlhá Lúka, most": [48.627200, 20.589800],
+    "Krásnohorská Dlhá Lúka, cintorín": [48.628200, 20.592500],
+    "Lipovník, zákruta": [48.636000, 20.597500],            // Zákruta na ceste 3012
+    "Lipovník, obchádzka": [48.636800, 20.604000],
+    "Lipovník, železničný most": [48.634500, 20.612000],    // Pod mostom
+    "Lipovník, železničná stanica": [48.631173, 20.616643],
+    "Lipovník, č. d. 1": [48.629800, 20.619000],
+    "Lipovník, Jednota": [48.629174, 20.620835]
+};
+
+// 2. HUSTÁ CESTNÁ SIEŤ (Modrá čiara kopíruje cestu III/3012)
+var presnaTrasaCesty = [
+    [48.660398, 20.534842], // Rožňava AS
+    [48.654820, 20.532850],
+    [48.651200, 20.531800],
+    [48.647500, 20.530200],
+    [48.642100, 20.528300],
+    [48.638500, 20.527200],
+    [48.636691, 20.526914], // Brzotín, Badinotti
+    [48.634200, 20.531500],
+    [48.632800, 20.539000],
+    [48.632300, 20.544500],
+    [48.631556, 20.547895], // Jovice, A. Chazára
+    [48.630679, 20.552469], // Jovice, Hradná
+    [48.630100, 20.555200],
+    [48.629400, 20.559500],
+    [48.628500, 20.564200],
+    [48.627800, 20.570000],
+    [48.627400, 20.576500],
+    [48.627143, 20.582467], // Krásnohorská Dlhá Lúka (Kríž)
+    [48.626800, 20.585500], // Jednota
+    [48.627200, 20.589800], // Most
+    [48.628200, 20.592500], // Cintorín
+    [48.631500, 20.595000],
+    [48.636000, 20.597500], // Lipovník (Zákruta)
+    [48.637200, 20.601000],
+    [48.636800, 20.604000],
+    [48.635800, 20.607000],
+    [48.634500, 20.612000], // Železničný most
+    [48.634000, 20.615500],
+    [48.631173, 20.616643], // Železničná stanica
+    [48.629800, 20.619000],
+    [48.629174, 20.620835]  // Lipovník, Jednota
+];
+
+// 3. FUNKCIA PRE VYKRESLENIE MODREJ ČIARY A BIELYCH BODIEK ZASTÁVOK
+function vykresliLiveMapu(mapaObjekt) {
+    if (!mapaObjekt) return;
+
+    // A) Vykreslenie súvislej modrej trasy po ceste
+    var modraTrasa = L.polyline(presnaTrasaCesty, {
+        color: '#0066ff',  // Jasná modrá farba
+        weight: 5,         // Hrúbka čiary
+        opacity: 0.9,
+        lineCap: 'round',
+        lineJoin: 'round'
+    }).addTo(mapaObjekt);
+
+    // B) Vykreslenie bielych bodiek s modrým okrajom na presných pozíciách zastávok
+    Object.keys(nodeGPS).forEach(function(nazovZastavky) {
+        var souradnice = nodeGPS[nazovZastavky];
+        L.circleMarker(souradnice, {
+            radius: 5,
+            fillColor: '#ffffff', // Biela výplň
+            color: '#003399',     // Tmavo-modrý okraj
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 1
+        }).addTo(mapaObjekt).bindPopup("<b>" + nazovZastavky + "</b>");
+    });
+
+    // C) Vycentrovanie mapy na trasu
+    mapaObjekt.fitBounds(modraTrasa.getBounds());
+}
 
         // OPRAVENÁ FUNKCIA VOĽBY ČASU DOCHÁDZANIA
         function vypocitajZostavajuciCas(spoj) {
