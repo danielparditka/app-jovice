@@ -221,105 +221,120 @@
             { id: "LK_1840", cislo: "808427", smer: "Lipovník, Jednota ➔ Krásnohorská Dlhá Lúka, kríž", start: "18:40", trasa: [...trasaKrizLipovnik].reverse(), min: minutyKrizLipovnik }
         ];
 
-// 1. PRESNÁ DATABÁZA VŠETKÝCH ZASTÁVOK Z CESTOVNÉHO PORIADKU (Súradnice presne na ceste)
-const nodeGPS = {
-    "Rožňava, AS": [48.660398, 20.534842],
-    "Rožňava, Šafárikova ulica": [48.654820, 20.532850],
-    "Rožňava, úrad práce": [48.651200, 20.531800],
-    "Rožňava, Kaufland": [48.647500, 20.530200],
-    "Rožňava, eurobus": [48.642100, 20.528300],
-    "Rožňava, železničné priecestie": [48.638500, 20.527200],
-    "Brzotín, Badinotti": [48.636691, 20.526914],
-    "Jovice, CWT Metal": [48.634200, 20.531500],
-    "Jovice, rozvodňa": [48.632800, 20.539000],
-    "Jovice, č.d. 25": [48.632300, 20.544500],
-    "Jovice, aut. stanica": [48.631556, 20.547895], // Dole pri A. Chazára
-    "Jovice, aut. st.": [48.631556, 20.547895],
-    "Jovice, Jednota": [48.630679, 20.552469],     // Hradná ul.
-    "Jovice, Hradná ul., most": [48.630100, 20.555200],
-    "Jovice, Hradná ul., odbočka": [48.629400, 20.559500],
-    "Jovice, futbalové ihrisko": [48.628500, 20.564200],
-    "Pole, č. 1": [48.627800, 20.570000],
-    "Pole, č. 2": [48.627400, 20.576500],
-    "Krásnohorská Dlhá Lúka, západ": [48.627250, 20.580100],
-    "Krásnohorská Dlhá Lúka, kríž": [48.627143, 20.582467], // Prvá križovatka od Jovíc
-    "Krásnohorská Dlhá Lúka, Jednota": [48.626800, 20.585500],
-    "Krásnohorská Dlhá Lúka, most": [48.627200, 20.589800],
-    "Krásnohorská Dlhá Lúka, cintorín": [48.628200, 20.592500],
-    "Lipovník, zákruta": [48.636000, 20.597500],            // Zákruta na ceste 3012
-    "Lipovník, obchádzka": [48.636800, 20.604000],
-    "Lipovník, železničný most": [48.634500, 20.612000],    // Pod mostom
-    "Lipovník, železničná stanica": [48.631173, 20.616643],
-    "Lipovník, č. d. 1": [48.629800, 20.619000],
-    "Lipovník, Jednota": [48.629174, 20.620835]
-};
+        // 1. PRESNÁ DATABÁZA VŠETKÝCH ZASTÁVOK Z CESTOVNÉHO PORIADKU (Súradnice presne na ceste)
+        const nodeGPS = {
+            "Rožňava, AS": [48.660398, 20.534842],
+            "Rožňava, Šafárikova ulica": [48.654820, 20.532850],
+            "Rožňava, úrad práce": [48.651200, 20.531800],
+            "Rožňava, Kaufland": [48.647500, 20.530200],
+            "Rožňava, eurobus": [48.642100, 20.528300],
+            "Rožňava, železničné priecestie": [48.638500, 20.527200],
+            "Brzotín, Badinotti": [48.636691, 20.526914],
+            "Jovice, CWT Metal": [48.634200, 20.531500],
+            "Jovice, rozvodňa": [48.632800, 20.539000],
+            "Jovice, č.d. 25": [48.632300, 20.544500],
+            "Jovice, č. d. 25": [48.632300, 20.544500],
+            "Jovice, aut. stanica": [48.631556, 20.547895],
+            "Jovice, aut. st.": [48.631556, 20.547895],
+            "Jovice, OcÚ": [48.631800, 20.548500],
+            "Jovice, materská škôlka": [48.632000, 20.549000],
+            "Jovice, nová sídlisko mladosť": [48.632500, 20.550000],
+            "Jovice, západ": [48.631000, 20.542000],
+            "Jovice, kostol": [48.631200, 20.546000],
+            "Jovice, poľný smrek": [48.630000, 20.543000],
+            "Jovice, ranč": [48.629000, 20.541000],
+            "Jovice, Mlynská ul.": [48.629500, 20.545000],
+            "Jovice, Byster č.d. 391": [48.628500, 20.550000],
+            "Jovice, Byster": [48.628000, 20.551000],
+            "Jovice, Starocintorínska ul.": [48.633000, 20.547000],
+            "Jovice, pod lesom": [48.634000, 20.552000],
+            "Jovice, Jednota": [48.630679, 20.552469],
+            "Jovice, Hradná ul., most": [48.630100, 20.555200],
+            "Jovice, Hradná ul. most": [48.630100, 20.555200],
+            "Jovice, Hradná ul. otočka": [48.629800, 20.557000],
+            "Jovice, Hradná ul. rázc.": [48.629600, 20.558000],
+            "Jovice, Hradná ul., odbočka": [48.629400, 20.559500],
+            "Jovice, futbalové ihrisko": [48.628500, 20.564200],
+            "Pole, č. 1": [48.627800, 20.570000],
+            "Pole, č. 2": [48.627400, 20.576500],
+            "Krásnohorská Dlhá Lúka, západ": [48.627250, 20.580100],
+            "Krásnohorská Dlhá Lúka, kríž": [48.627143, 20.582467],
+            "Krásnohorská Dlhá Lúka, Jednota": [48.626800, 20.585500],
+            "Krásnohorská Dlhá Lúka, most": [48.627200, 20.589800],
+            "Krásnohorská Dlhá Lúka, cintorín": [48.628200, 20.592500],
+            "Lipovník, zákruta": [48.636000, 20.597500],
+            "Lipovník, obchádzka": [48.636800, 20.604000],
+            "Lipovník, železničný most": [48.634500, 20.612000],
+            "Lipovník, železničná stanica": [48.631173, 20.616643],
+            "Lipovník, č. d. 1": [48.629800, 20.619000],
+            "Lipovník, Jednota": [48.629174, 20.620835]
+        };
 
-// 2. HUSTÁ CESTNÁ SIEŤ (Modrá čiara kopíruje cestu III/3012)
-var presnaTrasaCesty = [
-    [48.660398, 20.534842], // Rožňava AS
-    [48.654820, 20.532850],
-    [48.651200, 20.531800],
-    [48.647500, 20.530200],
-    [48.642100, 20.528300],
-    [48.638500, 20.527200],
-    [48.636691, 20.526914], // Brzotín, Badinotti
-    [48.634200, 20.531500],
-    [48.632800, 20.539000],
-    [48.632300, 20.544500],
-    [48.631556, 20.547895], // Jovice, A. Chazára
-    [48.630679, 20.552469], // Jovice, Hradná
-    [48.630100, 20.555200],
-    [48.629400, 20.559500],
-    [48.628500, 20.564200],
-    [48.627800, 20.570000],
-    [48.627400, 20.576500],
-    [48.627143, 20.582467], // Krásnohorská Dlhá Lúka (Kríž)
-    [48.626800, 20.585500], // Jednota
-    [48.627200, 20.589800], // Most
-    [48.628200, 20.592500], // Cintorín
-    [48.631500, 20.595000],
-    [48.636000, 20.597500], // Lipovník (Zákruta)
-    [48.637200, 20.601000],
-    [48.636800, 20.604000],
-    [48.635800, 20.607000],
-    [48.634500, 20.612000], // Železničný most
-    [48.634000, 20.615500],
-    [48.631173, 20.616643], // Železničná stanica
-    [48.629800, 20.619000],
-    [48.629174, 20.620835]  // Lipovník, Jednota
-];
+        // 2. HUSTÁ CESTNÁ SIEŤ (Modrá čiara kopíruje cestu III/3012)
+        var presnaTrasaCesty = [
+            [48.660398, 20.534842], // Rožňava AS
+            [48.654820, 20.532850],
+            [48.651200, 20.531800],
+            [48.647500, 20.530200],
+            [48.642100, 20.528300],
+            [48.638500, 20.527200],
+            [48.636691, 20.526914], // Brzotín, Badinotti
+            [48.634200, 20.531500],
+            [48.632800, 20.539000],
+            [48.632300, 20.544500],
+            [48.631556, 20.547895], // Jovice, A. Chazára
+            [48.630679, 20.552469], // Jovice, Hradná
+            [48.630100, 20.555200],
+            [48.629400, 20.559500],
+            [48.628500, 20.564200],
+            [48.627800, 20.570000],
+            [48.627400, 20.576500],
+            [48.627143, 20.582467], // Krásnohorská Dlhá Lúka (Kríž)
+            [48.626800, 20.585500], // Jednota
+            [48.627200, 20.589800], // Most
+            [48.628200, 20.592500], // Cintorín
+            [48.631500, 20.595000],
+            [48.636000, 20.597500], // Lipovník (Zákruta)
+            [48.637200, 20.601000],
+            [48.636800, 20.604000],
+            [48.635800, 20.607000],
+            [48.634500, 20.612000], // Železničný most
+            [48.634000, 20.615500],
+            [48.631173, 20.616643], // Železničná stanica
+            [48.629800, 20.619000],
+            [48.629174, 20.620835]  // Lipovník, Jednota
+        ];
 
-// 3. FUNKCIA PRE VYKRESLENIE MODREJ ČIARY A BIELYCH BODIEK ZASTÁVOK
-function vykresliLiveMapu(mapaObjekt) {
-    if (!mapaObjekt) return;
+        // 3. FUNKCIA PRE VYKRESLENIE MODREJ ČIARY A BIELYCH BODIEK ZASTÁVOK
+        function vykresliLiveMapu(mapaObjekt) {
+            if (!mapaObjekt) return;
 
-    // A) Vykreslenie súvislej modrej trasy po ceste
-    var modraTrasa = L.polyline(presnaTrasaCesty, {
-        color: '#0000ff',  // Jasná modrá farba
-        weight: 5,         // Hrúbka čiary
-        opacity: 0.9,
-        lineCap: 'round',
-        lineJoin: 'round'
-    }).addTo(mapaObjekt);
+            // A) Vykreslenie súvislej modrej trasy po ceste
+            var modraTrasa = L.polyline(presnaTrasaCesty, {
+                color: '#004a99',  // Jasná modrá farba
+                weight: 5,         // Hrúbka čiary
+                opacity: 0.9,
+                lineCap: 'round',
+                lineJoin: 'round'
+            }).addTo(mapaObjekt);
 
-    // B) Vykreslenie bielych bodiek s modrým okrajom na presných pozíciách zastávok
-    Object.keys(nodeGPS).forEach(function(nazovZastavky) {
-        var souradnice = nodeGPS[nazovZastavky];
-        L.circleMarker(souradnice, {
-            radius: 5,
-            fillColor: '#ffffff', // Biela výplň
-            color: '#003399',     // Tmavo-modrý okraj
-            weight: 2,
-            opacity: 1,
-            fillOpacity: 1
-        }).addTo(mapaObjekt).bindPopup("<b>" + nazovZastavky + "</b>");
-    });
+            // B) Vykreslenie bielych bodiek s modrým okrajom na presných pozíciách zastávok
+            Object.keys(nodeGPS).forEach(function(nazovZastavky) {
+                var souradnice = nodeGPS[nazovZastavky];
+                L.circleMarker(souradnice, {
+                    radius: 5,
+                    fillColor: '#ffffff', // Biela výplň
+                    color: '#003399',     // Tmavo-modrý okraj
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 1
+                }).addTo(mapaObjekt).bindPopup("<b>" + nazovZastavky + "</b>");
+            });
 
-    // C) Vycentrovanie mapy na trasu
-    mapaObjekt.fitBounds(modraTrasa.getBounds());
-}
+            // C) Vycentrovanie mapy na trasu
+            mapaObjekt.fitBounds(modraTrasa.getBounds());
+        }
 
-        // OPRAVENÁ FUNKCIA VOĽBY ČASU DOCHÁDZANIA
         function vypocitajZostavajuciCas(spoj) {
             const teraz = new Date();
             const [h, m] = spoj.start.split(':').map(Number);
@@ -581,74 +596,22 @@ function vykresliLiveMapu(mapaObjekt) {
         let leafletMap;
         function toggleMap() {
             const mapDiv = document.getElementById('map-container');
-            mapDiv.style.display = mapDiv.style.display === 'block' ? 'none' : 'block';
-            if (!leafletMap && mapDiv.style.display === 'block') {
-                // Stred zobrazenia: Okres Rožňava
-                leafletMap = L.map('map').setView([48.632, 20.575], 12);
-                
-                // Dlaždice Leaflet
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 18,
-                    attribution: '© OpenStreetMap'
-                }).addTo(leafletMap);
+            const isOpening = mapDiv.style.display !== 'block';
+            mapDiv.style.display = isOpening ? 'block' : 'none';
 
-               // BEZPEČNÝ KÓD: Kontrola, aby sa čiara nevykresľovala duplicitne pri každom otvorení mapy
-if (typeof window.vykreslenaTrasa === 'undefined') {
-    
-    // Husté GPS súradnice presne kopírujúce cestu
-    var presnaTrasaCesty = [
-        [48.660398, 20.534842],
-        [48.654500, 20.532200],
-        [48.648200, 20.530500],
-        [48.641800, 20.528100],
-        [48.636691, 20.526914],
-        [48.633500, 20.535000],
-        [48.632078, 20.550033], 
-        [48.630500, 20.554000],
-        [48.629200, 20.561000],
-        [48.628100, 20.568000],
-        [48.627300, 20.575000],
-        [48.627143, 20.582467], 
-        [48.628200, 20.591000],
-        [48.629500, 20.595000],
-        [48.636000, 20.597500], 
-        [48.637200, 20.601000],
-        [48.635800, 20.607000],
-        [48.634500, 20.612000],
-        [48.634000, 20.615500],
-        [48.631173, 20.616643], 
-        [48.629174, 20.620835]  
-    ];
+            if (isOpening) {
+                if (!leafletMap) {
+                    leafletMap = L.map('map').setView([48.632, 20.575], 12);
+                    
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 18,
+                        attribution: '© OpenStreetMap'
+                    }).addTo(leafletMap);
 
-    // Inteligentná kontrola: zistí, pod akým názvom máš v kóde uloženú mapu
-    var aktualnaMapa = (typeof leafletMap !== 'undefined') ? leafletMap : ((typeof map !== 'undefined') ? map : null);
-    
-    // Ak sa mapa našla, bezpečne do nej pridáme čiaru
-    if (aktualnaMapa) {
-        window.vykreslenaTrasa = L.polyline(presnaTrasaCesty, {
-            color: '#e60000', // Červená farba
-            weight: 4,
-            opacity: 0.9,
-            lineCap: 'round',
-            lineJoin: 'round'
-        }).addTo(aktualnaMapa);
-
-        // Vycentruje pohľad
-        aktualnaMapa.fitBounds(window.vykreslenaTrasa.getBounds());
-    } else {
-        console.warn("Upozornenie: Trasa sa nevykreslila, pretože objekt mapy (leafletMap) zatiaľ nebol inicializovaný.");
-    }
-}
-
-                // Pridanie značiek pre zastávky
-                Object.keys(nodeGPS).forEach(stName => {
-                    L.circleMarker(nodeGPS[stName], {
-                        radius: 4,
-                        color: '#333',
-                        fillColor: '#fff',
-                        fillOpacity: 1
-                    }).addTo(leafletMap).bindPopup(stName);
-                });
+                    vykresliLiveMapu(leafletMap);
+                } else {
+                    leafletMap.invalidateSize();
+                }
             }
         }
 
