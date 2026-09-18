@@ -221,29 +221,38 @@
             { id: "LK_1840", cislo: "808427", smer: "Lipovník, Jednota ➔ Krásnohorská Dlhá Lúka, kríž", start: "18:40", trasa: [...trasaKrizLipovnik].reverse(), min: minutyKrizLipovnik }
         ];
 
-// Súradnice pre presné kopírovanie čiary z Google Maps (bez značiek zastávok)
-const ciaraTrasy = [
-    [48.660398, 20.534842],  // Rožňava, AS
-    [48.6320781, 20.550033], // Jovice (Obecný úrad)
-    [48.6271428, 20.5824668],// Krásnohorská Dlhá Lúka
-    [48.6315566, 20.5478955],// Jovice (Kostol Ducha svätého)
-    [48.6306789, 20.5524691],// Jovice (Hradná)
-    [48.6271428, 20.5824668],// Krásnohorská Dlhá Lúka
-    [48.6289375, 20.6175601],// Prejazd smer Lipovník
-    [48.6291743, 20.6208348],// Lipovník (COOP Jednota)
-    [48.6311725, 20.6166429] // Lipovník
-];
-
-// Vykreslenie čistej čiary na LIVE mape
-const trasaPolyline = L.polyline(ciaraTrasy, {
-    color: '#007bff', // Farbu si môžeš zmeniť (napr. #28a745 pre zelenú alebo #ff0000 pre červenú)
-    weight: 5,        // Hrúbka čiary v pixeloch
-    opacity: 0.8,     // Priehľadnosť
-    lineJoin: 'round' // Vyhladenie rohov
-}).addTo(leafletMap); // Uisti sa, že tvoja premenná mapy sa volá 'leafletMap' (alebo uprav na 'map')
-
-// Automatické prispôsobenie pohľadu mapy na celú trasu
-leafletMap.fitBounds(trasaPolyline.getBounds());
+// DATABÁZA SÚRADNÍC PRE OFFLINE MAPU (Cestná sieť)
+        const nodeGPS = {
+            "Rožňava, AS": [48.6586, 20.5332],
+            "Rožňava, Šafárikova ulica": [48.6550, 20.5335],
+            "Rožňava, úrad práce": [48.6515, 20.5338],
+            "Rožňava, Kaufland": [48.6480, 20.5342],
+            "Rožňava, eurobus": [48.6445, 20.5350],
+            "Rožňava, železničné priecestie": [48.6410, 20.5370],
+            "Brzotín, Badinotti": [48.6380, 20.5420],
+            "Jovice, CWT Metal": [48.6368, 20.5480],
+            "Jovice, rozvodňa": [48.6362, 20.5520],
+            "Jovice, č.d. 25": [48.6360, 20.5550],
+            "Jovice, aut. stanica": [48.6358, 20.5585],
+            "Jovice, aut. st.": [48.6358, 20.5585],
+            "Jovice, Jednota": [48.6355, 20.5590],
+            "Jovice, Hradná ul., most": [48.6345, 20.5605],
+            "Jovice, Hradná ul., odbočka": [48.6335, 20.5620],
+            "Jovice, futbalové ihrisko": [48.6315, 20.5650],
+            "Pole, č. 1": [48.6285, 20.5700],
+            "Pole, č. 2": [48.6245, 20.5760],
+            "Krásnohorská Dlhá Lúka, západ": [48.6210, 20.5810],
+            "Krásnohorská Dlhá Lúka, kríž": [48.6185, 20.5842],
+            "Krásnohorská Dlhá Lúka, Jednota": [48.6180, 20.5870],
+            "Krásnohorská Dlhá Lúka, most": [48.6178, 20.5900],
+            "Krásnohorská Dlhá Lúka, cintorín": [48.6182, 20.5950],
+            "Lipovník, zákruta": [48.6210, 20.6080],
+            "Lipovník, železničný most": [48.6230, 20.6140],
+            "Lipovník, železničná stanica": [48.6242, 20.6180],
+            "Lipovník, č. d. 1": [48.6250, 20.6200],
+            "Lipovník, obchádzka": [48.6255, 20.6215],
+            "Lipovník, Jednota": [48.6260, 20.6230]
+        };
 
         // OPRAVENÁ FUNKCIA VOĽBY ČASU DOCHÁDZANIA
         function vypocitajZostavajuciCas(spoj) {
