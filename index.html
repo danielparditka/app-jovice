@@ -527,38 +527,53 @@
                     attribution: '© OpenStreetMap'
                 }).addTo(leafletMap);
 
-                // Vykreslenie hlavnej cestnej siete ako vektorové čiary po cestách
-                const hlavnaTrasa = [
-                    nodeGPS["Rožňava, AS"],
-                    nodeGPS["Rožňava, Šafárikova ulica"],
-                    nodeGPS["Rožňava, úrad práce"],
-                    nodeGPS["Rožňava, Kaufland"],
-                    nodeGPS["Rožňava, eurobus"],
-                    nodeGPS["Rožňava, železničné priecestie"],
-                    nodeGPS["Brzotín, Badinotti"],
-                    nodeGPS["Jovice, CWT Metal"],
-                    nodeGPS["Jovice, rozvodňa"],
-                    nodeGPS["Jovice, č.d. 25"],
-                    nodeGPS["Jovice, aut. stanica"],
-                    nodeGPS["Jovice, Hradná ul., most"],
-                    nodeGPS["Jovice, Hradná ul., odbočka"],
-                    nodeGPS["Jovice, futbalové ihrisko"],
-                    nodeGPS["Pole, č. 1"],
-                    nodeGPS["Pole, č. 2"],
-                    nodeGPS["Krásnohorská Dlhá Lúka, západ"],
-                    nodeGPS["Krásnohorská Dlhá Lúka, kríž"],
-                    nodeGPS["Krásnohorská Dlhá Lúka, Jednota"],
-                    nodeGPS["Krásnohorská Dlhá Lúka, most"],
-                    nodeGPS["Krásnohorská Dlhá Lúka, cintorín"],
-                    nodeGPS["Lipovník, zákruta"],
-                    nodeGPS["Lipovník, železničný most"],
-                    nodeGPS["Lipovník, železničná stanica"],
-                    nodeGPS["Lipovník, č. d. 1"],
-                    nodeGPS["Lipovník, obchádzka"],
-                    nodeGPS["Lipovník, Jednota"]
-                ];
+               // BEZPEČNÝ KÓD: Kontrola, aby sa čiara nevykresľovala duplicitne pri každom otvorení mapy
+if (typeof window.vykreslenaTrasa === 'undefined') {
+    
+    // Husté GPS súradnice presne kopírujúce cestu
+    var presnaTrasaCesty = [
+        [48.660398, 20.534842],
+        [48.654500, 20.532200],
+        [48.648200, 20.530500],
+        [48.641800, 20.528100],
+        [48.636691, 20.526914],
+        [48.633500, 20.535000],
+        [48.632078, 20.550033], 
+        [48.630500, 20.554000],
+        [48.629200, 20.561000],
+        [48.628100, 20.568000],
+        [48.627300, 20.575000],
+        [48.627143, 20.582467], 
+        [48.628200, 20.591000],
+        [48.629500, 20.595000],
+        [48.636000, 20.597500], 
+        [48.637200, 20.601000],
+        [48.635800, 20.607000],
+        [48.634500, 20.612000],
+        [48.634000, 20.615500],
+        [48.631173, 20.616643], 
+        [48.629174, 20.620835]  
+    ];
 
-                L.polyline(hlavnaTrasa, {color: '#004a99', weight: 5, opacity: 0.7}).addTo(leafletMap);
+    // Inteligentná kontrola: zistí, pod akým názvom máš v kóde uloženú mapu
+    var aktualnaMapa = (typeof leafletMap !== 'undefined') ? leafletMap : ((typeof map !== 'undefined') ? map : null);
+    
+    // Ak sa mapa našla, bezpečne do nej pridáme čiaru
+    if (aktualnaMapa) {
+        window.vykreslenaTrasa = L.polyline(presnaTrasaCesty, {
+            color: '#e60000', // Červená farba
+            weight: 4,
+            opacity: 0.9,
+            lineCap: 'round',
+            lineJoin: 'round'
+        }).addTo(aktualnaMapa);
+
+        // Vycentruje pohľad
+        aktualnaMapa.fitBounds(window.vykreslenaTrasa.getBounds());
+    } else {
+        console.warn("Upozornenie: Trasa sa nevykreslila, pretože objekt mapy (leafletMap) zatiaľ nebol inicializovaný.");
+    }
+}
 
                 // Pridanie značiek pre zastávky
                 Object.keys(nodeGPS).forEach(stName => {
