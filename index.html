@@ -175,7 +175,7 @@
     ];
     const minutyKrizLipovnik = [0, 1, 2, 3, 6, 8, 13, 16, 18, 20];
 
-    // Nová trasa vrátane novej zastávky "Jovice, Grunt"
+    // Nová trasa pre spoj Jovice ➔ Jovice, Grunt
     const trasaJoviceGrunt = [
         "Jovice, aut. stanica", 
         "Jovice, Hradná ul. most", 
@@ -234,9 +234,10 @@
         { id: "KL_1815", cislo: "808427", smer: "Krásnohorská Dlhá Lúka, kríž ➔ Lipovník, Jednota", start: "18:15", trasa: trasaKrizLipovnik, min: minutyKrizLipovnik },
         { id: "LK_1840", cislo: "808427", smer: "Lipovník, Jednota ➔ Krásnohorská Dlhá Lúka, kríž", start: "18:40", trasa: [...trasaKrizLipovnik].reverse(), min: minutyKrizLipovnik },
 
-        // Nové spoje (tam a späť)
-        { id: "GRUNT_1825", cislo: "808425", smer: "Jovice ➔ Jovice, Grunt", start: "18:25", trasa: trasaJoviceGrunt, min: minutyJoviceGrunt_tam },
-        { id: "GRUNT_1830", cislo: "808425", smer: "Jovice, Grunt ➔ Jovice", start: "18:30", trasa: [...trasaJoviceGrunt].reverse(), min: minutyJoviceGrunt_spat }
+        // Nový spoj tam z Jovíc o 18:35
+        { id: "GRUNT_1835", cislo: "808425", smer: "Jovice ➔ Jovice, Grunt", start: "18:35", trasa: trasaJoviceGrunt, min: minutyJoviceGrunt_tam },
+        // Nový spiatočný spoj z Jovíc, Grunt o 18:40
+        { id: "GRUNT_1840", cislo: "808425", smer: "Jovice, Grunt ➔ Jovice", start: "18:40", trasa: [...trasaJoviceGrunt].reverse(), min: minutyJoviceGrunt_spat }
     ];
 </script>
         
