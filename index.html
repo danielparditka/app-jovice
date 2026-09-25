@@ -451,93 +451,9 @@ var presnaTrasaCesty = [
     [48.6290051, 20.6205694]
 ];
 
-// =========================================================================
-// POMOCNÉ PREMENNÉ A FUNKCIE PRE POHYB PRÁVE PO MODREJ ČIARE (CESTE)
-// =========================================================================
-let leafletMap = null;
-let trasaMetre = [];
-let celkovaDlzkaTrasyM = 0;
-
-// Výpočet vzdialenosti dvoch GPS bodov v metroch (Haversine formula)
-function vypocitajVzdialenostGPS(lat1, lon1, lat2, lon2) {
-    const R = 6371000;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-// Vypočíta kumulatívnu vzdialenosť jednotlivých bodov modrej čiary v metroch
-function inicializujTrasuMapy() {
-    if (typeof presnaTrasaCesty === 'undefined' || !presnaTrasaCesty || presnaTrasaCesty.length === 0 || trasaMetre.length > 0) return;
-    
-    trasaMetre = [0];
-    celkovaDlzkaTrasyM = 0;
-
-    for (let i = 1; i < presnaTrasaCesty.length; i++) {
-        let prev = presnaTrasaCesty[i - 1];
-        let curr = presnaTrasaCesty[i];
-        let dist = vypocitajVzdialenostGPS(prev[0], prev[1], curr[0], curr[1]);
-        celkovaDlzkaTrasyM += dist;
-        trasaMetre.push(celkovaDlzkaTrasyM);
-    }
-}
-
-// Najde najbližší bod na modrej čiare ku GPS zastávky a vráti jeho vzdialenosť v metroch od štartu
-function ziskajMetreZastavky(gpsZastavky) {
-    if (!gpsZastavky || trasaMetre.length === 0) return 0;
-    let minDist = Infinity;
-    let najblizsieMetre = 0;
-
-    for (let i = 0; i < presnaTrasaCesty.length; i++) {
-        let d = vypocitajVzdialenostGPS(gpsZastavky[0], gpsZastavky[1], presnaTrasaCesty[i][0], presnaTrasaCesty[i][1]);
-        if (d < minDist) {
-            minDist = d;
-            najblizsieMetre = trasaMetre[i];
-        }
-    }
-    return najblizsieMetre;
-}
-
-// Vráti presné GPS súradnice [lat, lng] ležiace VÝLUČNE na modrej čiare pre zadaný počet metrov
-function ziskajGPSNaTrase(metre) {
-    if (trasaMetre.length === 0) return null;
-    metre = Math.max(0, Math.min(celkovaDlzkaTrasyM, metre));
-
-    let idx = 0;
-    while (idx < trasaMetre.length - 1 && trasaMetre[idx + 1] < metre) {
-        idx++;
-    }
-
-    if (idx >= trasaMetre.length - 1) {
-        return presnaTrasaCesty[presnaTrasaCesty.length - 1];
-    }
-
-    let mStart = trasaMetre[idx];
-    let mEnd = trasaMetre[idx + 1];
-    let ratio = (mEnd - mStart) > 0 ? ((metre - mStart) / (mEnd - mStart)) : 0;
-
-    let pStart = presnaTrasaCesty[idx];
-    let pEnd = presnaTrasaCesty[idx + 1];
-
-    let lat = pStart[0] + ratio * (pEnd[0] - pStart[0]);
-    let lon = pStart[1] + ratio * (pEnd[1] - pStart[1]);
-
-    return [lat, lon];
-}
-
-
-// =========================================================================
 // 3. FUNKCIA PRE VYKRESLENIE MODREJ ČIARY A BIELYCH BODIEK ZASTÁVOK
-// =========================================================================
 function vykresliLiveMapu(mapaObjekt) {
     if (!mapaObjekt) return;
-
-    // Uloženie odkazu na mapu a inicializácia metrovacej trasy
-    leafletMap = mapaObjekt;
-    inicializujTrasuMapy();
 
     // A) Vykreslenie súvislej modrej trasy po ceste
     var modraTrasa = L.polyline(presnaTrasaCesty, {
@@ -621,7 +537,7 @@ function vykresliLinky() {
         let spoj = { ...spojData, trasa: [], min: [] };
         let ideOdDedin = spojData.smer.startsWith("Lipovník") || spojData.smer.startsWith("Krásnohorská");
         
-        for(let i = 0; i < spojData.trasa.length; i++) {
+        for (let i = 0; i < spojData.trasa.length; i++) {
             if (ideOdDedin && spojData.trasa[i] === "Jovice, Hradná ul., odbočka") continue;
             spoj.trasa.push(spojData.trasa[i]);
             spoj.min.push(spojData.min[i]);
@@ -760,7 +676,7 @@ function aktualizujLivePohyb() {
                 }
             });
 
-            // POHYB NA MAPE STRIKTNE PO MODREJ ČIARE
+            // Pohyb na mape s uvedením času odchodu, príchodu a dynamickou ŠPZ
             if (leafletMap) {
                 let zA = spoj.trasa[idx];
                 let zB = spoj.trasa[idx + 1];
@@ -768,45 +684,36 @@ function aktualizujLivePohyb() {
                 let gB = nodeGPS[zB];
 
                 if (gA && gB) {
-                    // Prepočet pozície po modrej čiare
-                    let metreA = ziskajMetreZastavky(gA);
-                    let metreB = ziskajMetreZastavky(gB);
-                    let metreAutobus = metreA + ratio * (metreB - metreA);
+                    let curLat = gA[0] + (gB[0] - gA[0]) * ratio;
+                    let curLng = gA[1] + (gB[1] - gA[1]) * ratio;
+                    let spzText = domCache.spzTags[spoj.id]?.innerText || 'RV-JOVICE';
+                    let casPrichodu = pridajCas(spoj.start, maxMinut);
 
-                    let aktualneGPS = ziskajGPSNaTrase(metreAutobus);
+                    let popupContent = `
+                        <b>Linka ${spoj.cislo}</b><br>
+                        ${spoj.smer}<br>
+                        Odchod: <b>${spoj.start}</b> | Príchod: <b>${casPrichodu}</b><br>
+                        ŠPZ: <b>${spzText}</b><br>
+                        Dopravca: SAD Jovice
+                    `;
 
-                    if (aktualneGPS) {
-                        let curLat = aktualneGPS[0];
-                        let curLng = aktualneGPS[1];
-                        let spzText = domCache.spzTags[spoj.id]?.innerText || 'RV-JOVICE';
-                        let casPrichodu = pridajCas(spoj.start, maxMinut);
-
-                        let popupContent = `
-                            <b>Linka ${spoj.cislo}</b><br>
-                            ${spoj.smer}<br>
-                            Odchod: <b>${spoj.start}</b> | Príchod: <b>${casPrichodu}</b><br>
-                            ŠPZ: <b>${spzText}</b><br>
-                            Dopravca: SAD Jovice
-                        `;
-
-                        if (!mapBusMarkers[spoj.id]) {
-                            let customIcon = L.divIcon({
-                                className: 'map-bus-icon',
-                                html: '🚌',
-                                iconSize: [25, 25]
-                            });
-                            mapBusMarkers[spoj.id] = L.marker([curLat, curLng], {icon: customIcon}).addTo(leafletMap);
-                            mapBusMarkers[spoj.id].bindPopup(popupContent);
-                        } else {
-                            mapBusMarkers[spoj.id].setLatLng([curLat, curLng]);
-                            mapBusMarkers[spoj.id].setPopupContent(popupContent);
-                        }
+                    if (!mapBusMarkers[spoj.id]) {
+                        let customIcon = L.divIcon({
+                            className: 'map-bus-icon',
+                            html: '🚌',
+                            iconSize: [25, 25]
+                        });
+                        mapBusMarkers[spoj.id] = L.marker([curLat, curLng], {icon: customIcon}).addTo(leafletMap);
+                        mapBusMarkers[spoj.id].bindPopup(popupContent);
+                    } else {
+                        mapBusMarkers[spoj.id].setLatLng([curLat, curLng]);
+                        mapBusMarkers[spoj.id].setPopupContent(popupContent);
                     }
                 }
             }
 
         } 
-        // 3. SPOJ UŽ DOKONČIL JAZDU
+        // 3. SPOJ UŽ DOKONČIL JAZDU (Zostane plne vyfarbený a piktogram zostane na konečnej)
         else if (teraz > endD) {
             if (progressLine) progressLine.style.height = maxHeight + "px";
             if (busIcon) {
@@ -827,12 +734,10 @@ function aktualizujLivePohyb() {
         else {
             if (busIcon) busIcon.style.display = "none";
             if (progressLine) progressLine.style.height = "0px";
-            if (spoj.min) {
-                spoj.min.forEach((_, i) => {
-                    const dot = domCache.dots[spoj.id]?.[i];
-                    if (dot) dot.classList.remove('reached');
-                });
-            }
+            spoj.min.forEach((_, i) => {
+                const dot = domCache.dots[spoj.id]?.[i];
+                if (dot) dot.classList.remove('reached');
+            });
 
             if (leafletMap && mapBusMarkers[spoj.id]) {
                 leafletMap.removeLayer(mapBusMarkers[spoj.id]);
