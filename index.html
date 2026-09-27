@@ -220,8 +220,6 @@
             { id: "OKR_1800", cislo: "MHD1", smer: "Jovice, aut. st. ➔ Jovice, aut. st.", start: "18:00", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
             { id: "OKR_1830", cislo: "MHD1", smer: "Jovice, aut. st. ➔ Jovice, aut. st.", start: "18:30", trasa: okruznaTrasaRozsirena, min: okruznaMinutyRozsirena },
             { id: "OKR_1900", cislo: "MHD1", smer: "Jovice, aut. st. ➔ Jovice, aut. st.", start: "19:00", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
-            { id: "JG_1845", cislo: "MHD6", smer: "Jovice, aut. stanica ➔ Jovice, Grunt", start: "18:20", trasa: trasaJoviceGrunt_tam, min: minutyJoviceGrunt_tam },
-            { id: "JG_1850", cislo: "MHD6", smer: "Jovice, Grunt ➔ Jovice, aut. stanica", start: "18:25", trasa: trasaJoviceGrunt_spat, min: minutyJoviceGrunt_spat },
         
 
             { id: "KL_1515", cislo: "808427", smer: "Krásnohorská Dlhá Lúka, kríž ➔ Lipovník, Jednota", start: "15:15", trasa: trasaKrizLipovnik, min: minutyKrizLipovnik },
@@ -232,6 +230,9 @@
             
             { id: "KL_1815", cislo: "808427", smer: "Krásnohorská Dlhá Lúka, kríž ➔ Lipovník, Jednota", start: "18:15", trasa: trasaKrizLipovnik, min: minutyKrizLipovnik },
             { id: "LK_1840", cislo: "808427", smer: "Lipovník, Jednota ➔ Krásnohorská Dlhá Lúka, kríž", start: "18:40", trasa: [...trasaKrizLipovnik].reverse(), min: minutyKrizLipovnik },
+
+            { id: "JG_1845", cislo: "MHD6", smer: "Jovice, aut. stanica ➔ Jovice, Grunt", start: "18:20", trasa: trasaJoviceGrunt_tam, min: minutyJoviceGrunt_tam },
+            { id: "JG_1850", cislo: "MHD6", smer: "Jovice, Grunt ➔ Jovice, aut. stanica", start: "18:25", trasa: trasaJoviceGrunt_spat, min: minutyJoviceGrunt_spat }
         ];
         
 // 1. PRESNÁ DATABÁZA VŠETKÝCH ZASTÁVOK Z CESTOVNÉHO PORIADKU (Súradnice presne na ceste)
@@ -262,6 +263,7 @@ const nodeGPS = {
     "Jovice, Starocintorínska ul.": [48.6320211, 20.5498414],
     "Jovice, pod lesom": [48.6283791, 20.5448151],
     "Jovice, Jednota": [48.6321963, 20.5528597],
+    "Jovice, Grunt": [48.6314163, 20.5540723],
     "Jovice, Hradná ul., most": [48.6310278, 20.5508784],
     "Jovice, Hradná ul. most": [48.6310265, 20.5509039],
     "Jovice, Hradná ul. otočka": [48.6300055, 20.5528349],
