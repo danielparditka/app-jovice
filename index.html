@@ -151,15 +151,23 @@ const zastavkyDialkova_spat = [
 const minutyDialkova_spat = [0, 3, 6, 8, 10, 15, 17, 19, 21, 24, 25, 26, 27, 28, 29, 31, 33, 34, 35, 36];
 
 const okruznaTrasaStandard = [
-    "Jovice, aut. st.", "Jovice, OcÚ", "Jovice, č. d. 25", "Jovice, nová sídlisko mladosť", 
+    "Jovice, aut. st.", "Jovice, OcÚ", "Jovice, č. d. 25", "Jovice, Nové sídlisko Mladosť", 
     "Jovice, západ", "Jovice, kostol", "Jovice, poľný smrek", "Jovice, ranč", 
     "Jovice, Mlynská ul.", "Jovice, Byster č.d. 391", "Jovice, Byster", "Jovice, Hradná ul. otočka", 
     "Jovice, Hradná ul. rázc.", "Jovice, Hradná ul. most", "Jovice, aut. st."
 ];
 const okruznaMinutyStandard = [0, 0, 1, 2, 3, 4, 5, 6, 7, 7, 8, 9, 9, 9, 10];
 
+        const okruznaTrasaSkratena = [
+    "Jovice, aut. st.", "Jovice, OcÚ", "Jovice, č. d. 25", "Jovice, Nové sídlisko Mladosť", 
+    "Jovice, západ", "Jovice, kostol", "Jovice, poľný smrek", "Jovice, ranč", 
+    "Jovice, Mlynská ul.", "Jovice, Byster č.d. 391", "Jovice, Byster", "Jovice, Byster č.d. 391", 
+    "Jovice, aut. st."
+];
+const okruznaMinutyStandard = [0, 0, 1, 2, 3, 4, 5, 6, 7, 7, 8, 9, 9];
+
 const okruznaTrasaRozsirena = [
-    "Jovice, aut. st.", "Jovice, OcÚ", "Jovice, č. d. 25", "Jovice, nová sídlisko mladosť", 
+    "Jovice, aut. st.", "Jovice, OcÚ", "Jovice, č. d. 25", "Jovice, Nové sídlisko Mladosť", 
     "Jovice, západ", "Jovice, kostol", "Jovice, poľný smrek", "Jovice, ranč", 
     "Jovice, Mlynská ul.", "Jovice, Byster č.d. 391", "Jovice, Byster", "Jovice, Hradná ul. otočka", 
     "Jovice, Hradná ul. rázc.", "Jovice, Hradná ul. most", "Jovice, aut. st.", 
@@ -189,9 +197,11 @@ const spoje = [
     { id: "1", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "15:00", trasa: zastavkyJoviceLipovnik, min: casyJoviceLipovnik },
     { id: "2", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "15:35", trasa: [...zastavkyJoviceLipovnik].reverse(), min: casyJoviceLipovnik },
     { id: "3", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "15:20", trasa: zastavkyJoviceLipovnik, min: casyJoviceLipovnik },
-    { id: "4", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "15:30", trasa: zastavkyJoviceLipovnik, min: casyJoviceLipovnik },
     { id: "Spiat_1", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "15:55", trasa: [...zastavkyJoviceLipovnik].reverse(), min: casyJoviceLipovnik },
+    { id: "4", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "15:30", trasa: zastavkyJoviceLipovnik, min: casyJoviceLipovnik },
     { id: "Spiat_2", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "16:05", trasa: [...zastavkyJoviceLipovnik].reverse(), min: casyJoviceLipovnik },
+    { id: "5", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "16:50", trasa: zastavkyJoviceLipovnik, min: casyJoviceLipovnik },
+    { id: "Spiat_3", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "17:30", trasa: [...zastavkyJoviceLipovnik].reverse(), min: casyJoviceLipovnik },
     
     { id: "N1730", cislo: "808425", smer: "Jovice ➔ Lipovník", start: "17:30", trasa: zastavkyJoviceLipovnik, min: casyJoviceLipovnik },
     { id: "N1800", cislo: "808425", smer: "Lipovník ➔ Jovice", start: "18:05", trasa: [...zastavkyJoviceLipovnik].reverse(), min: casyJoviceLipovnik },
@@ -215,8 +225,8 @@ const spoje = [
     { id: "OKR_1410", cislo: "MHD1", smer: "Jovice, aut. st. ➔ Jovice, aut. st.", start: "14:10", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
     { id: "OKR_1500", cislo: "MHD1", smer: "Jovice, aut. st. ➔ Jovice, aut. st.", start: "15:00", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
     { id: "OKR_1555", cislo: "MHD1", smer: "Jovice, aut. st. ➔ Jovice, aut. st.", start: "15:55", trasa: okruznaTrasaRozsirena, min: okruznaMinutyRozsirena },
-    { id: "OKR_1620", cislo: "MHD1", smer: "Jovice, aut. st. ➔ Jovice, aut. st.", start: "16:20", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
-    { id: "OKR_1715", cislo: "MHD1", smer: "Jovice, aut. st. ➔ Jovice, aut. st.", start: "17:15", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
+    { id: "OKR_1620", cislo: "MHD1", smer: "Jovice, aut. st. ➔ Jovice, aut. st.", start: "16:20", trasa: okruznaTrasaSkratena, min: okruznaMinutySkratena },
+    { id: "OKR_1715", cislo: "MHD1", smer: "Jovice, aut. st. ➔ Jovice, aut. st.", start: "17:15", trasa: okruznaTrasaSkratena, min: okruznaMinutySkratena },
     { id: "OKR_1800", cislo: "MHD1", smer: "Jovice, aut. st. ➔ Jovice, aut. st.", start: "18:00", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
     { id: "OKR_1830", cislo: "MHD1", smer: "Jovice, aut. st. ➔ Jovice, aut. st.", start: "18:30", trasa: okruznaTrasaRozsirena, min: okruznaMinutyRozsirena },
     { id: "OKR_1900", cislo: "MHD1", smer: "Jovice, aut. st. ➔ Jovice, aut. st.", start: "19:00", trasa: okruznaTrasaStandard, min: okruznaMinutyStandard },
